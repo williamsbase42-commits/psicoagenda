@@ -1,0 +1,3478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsicoAgenda</title>
+    
+    <!-- Enlace al Manifest para PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Metaetiquetas del tema PWA -->
+    <meta name="theme-color" content="#6366F1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PsicoAgenda">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/87CEEB/FFFFFF?text=P.A">
+    
+    <!-- Iconos (iOS) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="https://placehold.co/192x192/87CEEB/FFFFFF?text=P.A">
+    <link rel="icon" type="image/png" sizes="512x512" href="https://placehold.co/512x512/87CEEB/FFFFFF?text=P.A">
+
+    <!-- Estilos CSS (integrados) -->
+    <style>
+        :root {
+            /* Paleta de colores moderna y cálida */
+            --primary-color: #6366f1; /* Indigo vibrante */
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            
+            --secondary-color: #f8fafc;
+            --secondary-light: #f1f5f9;
+            --accent-color: #10b981; /* Verde esmeralda */
+            --accent-light: #d1fae5;
+            
+            --text-color: #1e293b;
+            --text-light: #64748b;
+            --text-lighter: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            --white: #ffffff;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            
+            --bg-light: #f8fafc;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 20px 25px -5px rgba(99, 102, 241, 0.3), 0 10px 10px -5px rgba(99, 102, 241, 0.2);
+            
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+            --border-radius-lg: 24px;
+            
+            /* Transiciones */
+            --transition-fast: 150ms ease;
+            --transition-base: 300ms ease;
+            --transition-slow: 500ms ease;
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            src: url('https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2') format('woff2');
+            font-weight: 400;
+        }
+        
+        @font-face {
+            font-family: 'Inter';
+            src: url('https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2') format('woff2');
+            font-weight: 600;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background-attachment: fixed;
+            color: var(--text-color);
+            line-height: 1.6;
+            overscroll-behavior: none;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Contenedor principal y navegación --- */
+        #app-header {
+            background: var(--white);
+            padding: 1rem 0 0 0;
+            border-bottom: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        #app-header-top {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        #app-header h1 {
+            font-size: 1.75rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Navegación superior con tabs */
+        .top-nav {
+            display: flex;
+            border-bottom: 2px solid var(--border-light);
+            padding: 0;
+            margin: 0;
+            background: var(--white);
+        }
+
+        .top-nav button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all var(--transition-base);
+            position: relative;
+            border-bottom: 3px solid transparent;
+        }
+
+        .top-nav button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .top-nav button:hover:not(.active) {
+            color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .top-nav button::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform var(--transition-base);
+        }
+
+        .top-nav button.active::after {
+            transform: scaleX(1);
+        }
+
+        #app-header-top > button {
+            background: var(--primary-light);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 0.75rem;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        #app-header-top > button:hover {
+            background: var(--primary-color);
+            transform: translateX(-2px);
+        }
+        
+        #app-header-top > button:hover svg {
+            stroke: var(--white);
+        }
+        
+        #app-header-top > button svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary-color);
+            transition: stroke var(--transition-base);
+        }
+        
+        /* Menú de configuración */
+        .settings-menu {
+            position: fixed;
+            top: 80px;
+            right: 1rem;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+            min-width: 280px;
+            max-width: 320px;
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all var(--transition-base);
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .settings-menu.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+        
+        .settings-menu-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-color);
+        }
+        
+        .settings-menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-menu-item:hover {
+            background: var(--secondary-light);
+        }
+        
+        .settings-menu-item.danger {
+            color: var(--danger);
+        }
+        
+        .settings-menu-item.danger:hover {
+            background: var(--danger-light);
+        }
+        
+        .settings-menu-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+        }
+        
+        #app-container {
+            flex-grow: 1;
+            overflow-y: auto; /* Scroll solo en el contenido */
+            padding: 1.5rem;
+            padding-bottom: 80px; /* Espacio para el nav inferior */
+            padding-top: 0; /* Sin padding superior ya que el header tiene tabs */
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-light);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .bottom-nav button {
+            flex-grow: 1;
+            background: none;
+            border: none;
+            padding: 0.75rem 0.5rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all var(--transition-base);
+            border-radius: 12px;
+            margin: 0 0.25rem;
+            position: relative;
+        }
+        
+        .bottom-nav button svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--text-light);
+            margin-bottom: 4px;
+            transition: all var(--transition-base);
+        }
+        
+        .bottom-nav button.active {
+            color: var(--primary-color);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        .bottom-nav button.active svg {
+            stroke: var(--primary-color);
+            transform: scale(1.1);
+        }
+        
+        .bottom-nav button:hover:not(.active) {
+            color: var(--primary-color);
+            background: var(--secondary-light);
+        }
+        
+        .bottom-nav button:hover:not(.active) svg {
+            stroke: var(--primary-color);
+        }
+
+        /* --- Páginas --- */
+        .page {
+            display: none;
+            animation: fadeInSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeInSlide {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.98); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+        
+        .page-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* --- Componentes UI --- */
+        .card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            transition: all var(--transition-base);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition-base);
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            border-color: var(--primary-light);
+        }
+        
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .card-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--text-color);
+            letter-spacing: -0.3px;
+        }
+
+        .btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--secondary-light);
+            border-color: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-danger-outline {
+            background: var(--white);
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+        
+        .btn-danger-outline:hover {
+            background: var(--danger-light);
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            font-family: 'Inter', sans-serif;
+            display: block;
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            background: var(--white);
+            transition: all var(--transition-base);
+            color: var(--text-color);
+        }
+        
+        .form-control:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-light);
+            transform: translateY(-1px);
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-lighter);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* --- Listas --- */
+        .list-group {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .list-group-item {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+        
+        .list-group-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-gradient);
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform var(--transition-base);
+        }
+        
+        .list-group-item:first-child {
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+        }
+        
+        .list-group-item:last-child {
+            border-bottom-left-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .list-group-item:hover {
+            background: var(--secondary-light);
+            transform: translateX(4px);
+            border-color: var(--primary-light);
+        }
+        
+        .list-group-item:hover::before {
+            transform: scaleY(1);
+        }
+        
+        .list-group-item strong {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .list-group-item .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            background: linear-gradient(135deg, var(--secondary-light) 0%, var(--white) 100%);
+            border-radius: var(--border-radius);
+            border: 2px dashed var(--border-color);
+            color: var(--text-light);
+            transition: all var(--transition-base);
+        }
+        
+        .empty-state:hover {
+            border-color: var(--primary-light);
+            transform: scale(1.02);
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        /* --- Calendario --- */
+        #calendario-container {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+        }
+        
+        #cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        #cal-month-year {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        #cal-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        
+        #cal-days span {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        #cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .cal-day {
+            min-height: 80px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+        
+        .cal-day:not(.other-month) {
+            background: var(--white);
+            cursor: pointer;
+        }
+        
+        .cal-day.other-month {
+            background: var(--secondary-light);
+            color: var(--text-lighter);
+            opacity: 0.5;
+        }
+        
+        .cal-day:hover:not(.other-month) {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .cal-day.today {
+            background: var(--primary-gradient);
+            color: var(--white);
+            font-weight: 700;
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .cal-day.today .event-dot {
+            background: var(--white);
+        }
+        
+        .cal-day span {
+            display: block;
+        }
+        
+        .cal-day .event-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            margin-top: 4px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+
+        /* --- Bitácora --- */
+        .bitacora-timeline {
+            position: relative;
+            padding: 1rem 0;
+        }
+        
+        .bitacora-item {
+            position: relative;
+            margin-left: 20px;
+            padding-left: 30px;
+            padding-bottom: 2rem;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .bitacora-item:last-child {
+            border-left: 3px solid transparent;
+        }
+        
+        .bitacora-item::before {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 0 0 4px var(--white), 0 0 0 8px var(--primary-light);
+            animation: pulse 2s infinite;
+        }
+        
+        .bitacora-content {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            transition: all var(--transition-base);
+        }
+        
+        .bitacora-content:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateX(4px);
+        }
+        
+        .bitacora-date {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+        
+        .bitacora-text {
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .bitacora-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .tag {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            transition: all var(--transition-base);
+            border: 1px solid transparent;
+        }
+        
+        .tag:hover {
+            background: var(--primary-color);
+            color: var(--white);
+            transform: scale(1.05);
+        }
+        
+        .attachment-list li {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* --- Modal --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            padding: 1rem;
+        }
+        
+        .modal-backdrop:not(.hidden) {
+            opacity: 1;
+        }
+
+        .modal-dialog {
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.9) translateY(20px);
+            transition: transform var(--transition-base);
+            border: 1px solid var(--border-light);
+        }
+        
+        .modal-backdrop:not(.hidden) .modal-dialog {
+             transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        #modal-close-btn, .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color var(--transition-base);
+        }
+        
+        #modal-close-btn:hover, .btn-close:hover {
+            color: var(--text-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        
+        /* --- Toast --- */
+        #toast-container {
+            position: fixed;
+            bottom: 80px; /* Arriba del nav */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .toast {
+            padding: 1rem 1.5rem;
+            background: var(--text-color);
+            color: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1), toastOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) 2.6s forwards;
+            opacity: 0;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+        
+        .toast.success { 
+            background: var(--success);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .toast.error { 
+            background: var(--danger);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+        
+        @keyframes toastIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.9); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes toastOut {
+            from { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+            to { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.9); 
+            }
+        }
+        
+        /* Animaciones adicionales */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--primary-light);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+
+        /* Botón flotante para agregar notas */
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            right: 1.5rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+        }
+        
+        .fab.active {
+            transform: rotate(45deg);
+            background: var(--danger);
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .fab.active:hover {
+            transform: rotate(45deg) scale(1.1);
+        }
+        
+        .fab:active {
+            transform: scale(0.95);
+        }
+        
+        .fab svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--white);
+            stroke-width: 3;
+            transition: transform var(--transition-base);
+        }
+        
+        /* Menú flotante desplegable */
+        .fab-menu {
+            position: fixed;
+            bottom: 170px;
+            right: 1.5rem;
+            z-index: 998;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(20px) scale(0.8);
+            pointer-events: none;
+            transition: all var(--transition-base);
+        }
+        
+        .fab-menu.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+        
+        .fab-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--white);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            min-width: 200px;
+            animation: slideInUp 0.3s ease backwards;
+        }
+        
+        .fab-menu-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        
+        .fab-menu-item:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .fab-menu-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+        
+        .fab-menu-item:hover {
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .fab-menu-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary-color);
+            flex-shrink: 0;
+        }
+        
+        .fab-menu-item span {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Encabezado de la App -->
+    <header id="app-header">
+        <div id="app-header-top">
+            <h1 id="header-title">PsicoAgenda</h1>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <!-- Botón de configuración -->
+                <button id="settings-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+                <!-- Botón de retorno, se mostrará dinámicamente -->
+                <button id="back-btn" class="hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Navegación superior con tabs -->
+        <nav class="top-nav">
+            <button data-page="dashboard" class="top-nav-btn active">
+                Inicio
+            </button>
+            <button data-page="calendario" class="top-nav-btn">
+                Calendario
+            </button>
+            <button data-page="documentos" class="top-nav-btn">
+                Documentos
+            </button>
+        </nav>
+    </header>
+
+    <!-- Contenedor principal de páginas -->
+    <main id="app-container">
+        
+        <!-- PÁGINA: DASHBOARD -->
+        <section id="page-dashboard" class="page active">
+            <h2 class="page-title" id="dashboard-title">¡Hola!</h2>
+            <p class="page-subtitle" id="dashboard-date">Cargando fecha...</p>
+            
+            <div class="card">
+                <h3 class="card-title">Eventos de Hoy</h3>
+                <div id="dashboard-eventos">
+                    <p>No hay eventos para hoy.</p>
+                </div>
+            </div>
+            
+            <button id="install-pwa-btn" class="btn btn-primary btn-block hidden">
+                Instalar PsicoAgenda
+            </button>
+        </section>
+        
+        <!-- Botón flotante con menú desplegable (solo visible en dashboard) -->
+        <div id="fab-container" class="hidden">
+            <div id="fab-menu" class="fab-menu">
+                <div class="fab-menu-item" id="fab-add-curso">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>Agregar Curso</span>
+                </div>
+                <div class="fab-menu-item" id="fab-add-estudiante">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Agregar Estudiante</span>
+                </div>
+                <div class="fab-menu-item" id="fab-add-nota">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Agregar Nota</span>
+                </div>
+            </div>
+            <button id="fab-button" class="fab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- PÁGINA: CURSOS -->
+        <section id="page-cursos" class="page">
+            <h2 class="page-title">Mis Cursos</h2>
+            <div class="card">
+                <form id="form-add-curso">
+                    <div class="form-group">
+                        <label for="curso-nombre">Nombre del Curso (ej. 1°A)</label>
+                        <input type="text" id="curso-nombre" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar Curso</button>
+                </form>
+            </div>
+            
+            <div id="cursos-list" class="list-group">
+                <!-- Los cursos se insertarán aquí -->
+            </div>
+            <div id="cursos-empty" class="empty-state hidden">
+                <p>Aún no has agregado ningún curso.</p>
+            </div>
+        </section>
+
+        <!-- PÁGINA: ESTUDIANTES (por curso) -->
+        <section id="page-estudiantes" class="page">
+            <h2 class="page-title" id="estudiantes-title">Cargando...</h2>
+            
+             <div class="card">
+                <form id="form-add-estudiante">
+                    <input type="hidden" id="estudiante-curso-id">
+                    <div class="form-group">
+                        <label for="estudiante-nombre">Nombre del Estudiante</label>
+                        <input type="text" id="estudiante-nombre" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar Estudiante</button>
+                </form>
+            </div>
+            
+            <div id="estudiantes-list" class="list-group">
+                <!-- Los estudiantes se insertarán aquí -->
+            </div>
+            <div id="estudiantes-empty" class="empty-state hidden">
+                <p>No hay estudiantes en este curso.</p>
+            </div>
+        </section>
+
+        <!-- PÁGINA: BITÁCORA (por estudiante) -->
+        <section id="page-bitacora" class="page">
+            <h2 class="page-title" id="bitacora-title">Cargando...</h2>
+            <p class="page-subtitle" id="bitacora-subtitle"></p>
+
+            <div class="card">
+                <form id="form-add-nota">
+                    <input type="hidden" id="nota-estudiante-id">
+                    <div class="form-group">
+                        <label for="nota-texto">Nueva Nota</label>
+                        <textarea id="nota-texto" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="nota-tags">Etiquetas (separadas por coma)</label>
+                        <input type="text" id="nota-tags" class="form-control" placeholder="ej. entrevista, seguimiento, evaluación">
+                    </div>
+                    <div class="form-group">
+                        <label for="nota-archivos">Adjuntar archivos</label>
+                        <input type="file" id="nota-archivos" class="form-control" multiple>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Nota</button>
+                </form>
+            </div>
+            
+            <div id="bitacora-timeline" class="bitacora-timeline">
+                <!-- Las notas se insertarán aquí -->
+            </div>
+            <div id="bitacora-empty" class="empty-state hidden">
+                <p>No hay notas para este estudiante.</p>
+            </div>
+        </section>
+        
+        <!-- PÁGINA: CALENDARIO -->
+        <section id="page-calendario" class="page">
+            <h2 class="page-title">Calendario</h2>
+            
+            <div id="calendario-container">
+                <div id="cal-header">
+                    <button id="cal-prev" class="btn btn-secondary">&lt;</button>
+                    <span id="cal-month-year"></span>
+                    <button id="cal-next" class="btn btn-secondary">&gt;</button>
+                </div>
+                <div id="cal-days">
+                    <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                </div>
+                <div id="cal-grid">
+                    <!-- Los días se generarán aquí -->
+                </div>
+            </div>
+            
+            <div id="cal-eventos-dia" class="card hidden" style="margin-top: 1.5rem;">
+                <h3 class="card-title" id="cal-eventos-title">Eventos para...</h3>
+                <ul id="cal-eventos-list" class="list-group"></ul>
+            </div>
+        </section>
+        
+        <!-- PÁGINA: DOCUMENTOS -->
+        <section id="page-documentos" class="page">
+            <h2 class="page-title">Documentos</h2>
+            <p class="page-subtitle">Gestiona todos tus documentos y archivos adjuntos</p>
+            
+            <div class="card">
+                <h3 class="card-title">Todos los Documentos</h3>
+                <div id="documentos-list" class="list-group">
+                    <!-- Los documentos se insertarán aquí -->
+                </div>
+                <div id="documentos-empty" class="empty-state hidden">
+                    <p>Aún no hay documentos guardados.</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- PÁGINA: BITÁCORA LIST (Lista de todas las bitácoras) -->
+        <section id="page-bitacora-list" class="page">
+            <h2 class="page-title">Bitácora</h2>
+            <p class="page-subtitle">Todas tus notas y observaciones</p>
+            
+            <div class="card">
+                <h3 class="card-title">Filtrar Bitácora</h3>
+                <div class="form-group">
+                    <label for="bitacora-curso-filter">Curso</label>
+                    <select id="bitacora-curso-filter" class="form-control">
+                        <option value="">Todos los cursos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bitacora-estudiante-filter">Estudiante</label>
+                    <select id="bitacora-estudiante-filter" class="form-control">
+                        <option value="">Todos los estudiantes</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="bitacora-list-timeline" class="bitacora-timeline">
+                <!-- Las notas se insertarán aquí -->
+            </div>
+            <div id="bitacora-list-empty" class="empty-state hidden">
+                <p>No hay notas registradas.</p>
+            </div>
+        </section>
+
+        <!-- PÁGINA: EVALUACIONES -->
+        <section id="page-evaluaciones" class="page">
+            <h2 class="page-title">Evaluaciones</h2>
+            <p class="page-subtitle">Gestiona las evaluaciones de tus estudiantes</p>
+            
+            <div class="card">
+                <h3 class="card-title">Filtrar Evaluaciones</h3>
+                <div class="form-group">
+                    <label for="evaluacion-curso-filter">Curso</label>
+                    <select id="evaluacion-curso-filter" class="form-control">
+                        <option value="">Todos los cursos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="evaluacion-estudiante-filter">Estudiante</label>
+                    <select id="evaluacion-estudiante-filter" class="form-control">
+                        <option value="">Todos los estudiantes</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Nueva Evaluación</h3>
+                <form id="form-add-evaluacion">
+                    <div class="form-group">
+                        <label for="evaluacion-estudiante">Estudiante</label>
+                        <select id="evaluacion-estudiante" class="form-control" required>
+                            <option value="">Selecciona un estudiante</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evaluacion-tipo">Tipo de Evaluación</label>
+                        <select id="evaluacion-tipo" class="form-control" required>
+                            <option value="">Selecciona un tipo</option>
+                            <option value="psicologica">Evaluación Psicológica</option>
+                            <option value="psicopedagogica">Evaluación Psicopedagógica</option>
+                            <option value="seguimiento">Seguimiento</option>
+                            <option value="revision">Revisión</option>
+                            <option value="otra">Otra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evaluacion-fecha">Fecha</label>
+                        <input type="date" id="evaluacion-fecha" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="evaluacion-notas">Notas y Observaciones</label>
+                        <textarea id="evaluacion-notas" class="form-control" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="evaluacion-archivos">Adjuntar archivos</label>
+                        <input type="file" id="evaluacion-archivos" class="form-control" multiple>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Evaluación</button>
+                </form>
+            </div>
+            
+            <div id="evaluaciones-list" class="list-group">
+                <!-- Las evaluaciones se insertarán aquí -->
+            </div>
+            <div id="evaluaciones-empty" class="empty-state hidden">
+                <p>No hay evaluaciones registradas.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Navegación inferior -->
+    <nav class="bottom-nav">
+        <button data-page="cursos" class="nav-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Mis Cursos</span>
+        </button>
+        <button data-page="bitacora-list" class="nav-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Bitácora</span>
+        </button>
+        <button data-page="evaluaciones" class="nav-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            <span>Evaluaciones</span>
+        </button>
+    </nav>
+    
+    <!-- Contenedor de Toasts -->
+    <div id="toast-container"></div>
+
+    <!-- Menú de Configuración -->
+    <div id="settings-menu" class="settings-menu hidden">
+        <div class="settings-menu-item" id="settings-export">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Exportar Datos</span>
+        </div>
+        <div class="settings-menu-item" id="settings-import">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>Importar Datos</span>
+        </div>
+        <div class="settings-menu-item danger" id="settings-delete">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Eliminar Todos los Datos</span>
+        </div>
+    </div>
+
+    <!-- Modal para Importar -->
+    <div id="import-modal" class="modal-backdrop hidden">
+        <div class="modal-dialog" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Importar Datos</h3>
+                <button id="import-modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-light); margin-bottom: 1rem;">
+                    Importa un archivo JSON de PsicoAgenda. Los datos se fusionarán con los existentes.
+                </p>
+                <input type="file" id="import-file" accept="application/json" class="form-control" style="margin-bottom: 1rem;">
+                <button id="import-btn" class="btn btn-primary btn-block" disabled>Importar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Curso desde Inicio -->
+    <div id="add-curso-modal" class="modal-backdrop hidden">
+        <div class="modal-dialog" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Nuevo Curso</h3>
+                <button id="add-curso-modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-curso-dashboard">
+                    <div class="form-group">
+                        <label for="curso-nombre-dashboard">Nombre del Curso</label>
+                        <input type="text" id="curso-nombre-dashboard" class="form-control" placeholder="ej. 1°A" required>
+                    </div>
+                    <div class="modal-footer" style="padding: 0; border: none; margin-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-curso-modal').classList.add('hidden')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Agregar Curso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Estudiante desde Inicio -->
+    <div id="add-estudiante-modal" class="modal-backdrop hidden">
+        <div class="modal-dialog" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Nuevo Estudiante</h3>
+                <button id="add-estudiante-modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-estudiante-dashboard">
+                    <div class="form-group">
+                        <label for="estudiante-curso-dashboard">Curso</label>
+                        <select id="estudiante-curso-dashboard" class="form-control" required>
+                            <option value="">Selecciona un curso</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="estudiante-nombre-dashboard">Nombre del Estudiante</label>
+                        <input type="text" id="estudiante-nombre-dashboard" class="form-control" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="modal-footer" style="padding: 0; border: none; margin-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-estudiante-modal').classList.add('hidden')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Agregar Estudiante</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Nota desde Inicio -->
+    <div id="add-nota-modal" class="modal-backdrop hidden">
+        <div class="modal-dialog" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Nueva Nota</h3>
+                <button id="add-nota-modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-nota-dashboard">
+                    <div class="form-group">
+                        <label for="nota-estudiante-dashboard">Estudiante</label>
+                        <select id="nota-estudiante-dashboard" class="form-control" required>
+                            <option value="">Selecciona un estudiante</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nota-texto-dashboard">Nota</label>
+                        <textarea id="nota-texto-dashboard" class="form-control" rows="4" required placeholder="Escribe tu nota aquí..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="nota-tags-dashboard">Etiquetas (separadas por coma)</label>
+                        <input type="text" id="nota-tags-dashboard" class="form-control" placeholder="ej. entrevista, seguimiento, evaluación">
+                    </div>
+                    <div class="form-group">
+                        <label for="nota-archivos-dashboard">Adjuntar archivos</label>
+                        <input type="file" id="nota-archivos-dashboard" class="form-control" multiple>
+                    </div>
+                    <div class="modal-footer" style="padding: 0; border: none; margin-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-nota-modal').classList.add('hidden')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Nota</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal genérico -->
+    <div id="modal-container" class="modal-backdrop hidden">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title"></h3>
+                <button id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Contenido del modal -->
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <!-- Botones del modal -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- JAVASCRIPT INTEGRADO -->
+    <!-- =================================================================== -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Estado global de la aplicación (para navegación)
+        const AppState = {
+            currentPage: 'dashboard',
+            currentCursoId: null,
+            currentCursoNombre: null,
+            currentEstudianteId: null,
+            currentEstudianteNombre: null,
+            navigationStack: ['dashboard']
+        };
+        
+        // Almacenamiento del prompt de instalación de PWA
+        let deferredInstallPrompt = null;
+
+        /**
+         * ===================================================================
+         * MÓDULO: DB (Manejo de IndexedDB)
+         * (db.js)
+         * ===================================================================
+         */
+        const DB = (() => {
+            const DB_NAME = 'PsicoAgendaDB';
+            const DB_VERSION = 1;
+            let db;
+
+            // Función para convertir Blob a Base64
+            const blobToBase64 = (blob) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                });
+            };
+
+            // Función para convertir Base64 a Blob
+            const base64ToBlob = async (base64) => {
+                const res = await fetch(base64);
+                return await res.blob();
+            };
+
+            const init = () => {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                    request.onerror = (event) => {
+                        console.error('Error al abrir IndexedDB:', event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    request.onsuccess = (event) => {
+                        db = event.target.result;
+                        console.log('IndexedDB abierta exitosamente.');
+                        resolve(db);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        console.log('Actualizando IndexedDB...');
+                        db = event.target.result;
+
+                        if (!db.objectStoreNames.contains('cursos')) {
+                            db.createObjectStore('cursos', { keyPath: 'id', autoIncrement: true });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('estudiantes')) {
+                            const estudiantesStore = db.createObjectStore('estudiantes', { keyPath: 'id', autoIncrement: true });
+                            estudiantesStore.createIndex('cursoId', 'cursoId', { unique: false });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('notas')) {
+                            const notasStore = db.createObjectStore('notas', { keyPath: 'id', autoIncrement: true });
+                            notasStore.createIndex('estudianteId', 'estudianteId', { unique: false });
+                        }
+                        
+                        // 'documentos' almacenará blobs
+                        if (!db.objectStoreNames.contains('documentos')) {
+                             const documentosStore = db.createObjectStore('documentos', { keyPath: 'id', autoIncrement: true });
+                             documentosStore.createIndex('estudianteId', 'estudianteId', { unique: false });
+                        }
+
+                        if (!db.objectStoreNames.contains('eventos')) {
+                            const eventosStore = db.createObjectStore('eventos', { keyPath: 'id', autoIncrement: true });
+                            eventosStore.createIndex('fechaInicio', 'fechaInicio', { unique: false });
+                        }
+                    };
+                });
+            };
+
+            const getStore = (storeName, mode = 'readonly') => {
+                if (!db) {
+                    console.error("DB no está inicializada.");
+                    return null; 
+                }
+                const transaction = db.transaction(storeName, mode);
+                return transaction.objectStore(storeName);
+            };
+
+            // --- Funciones CRUD Promisificadas ---
+
+            const add = (storeName, item) => {
+                return new Promise((resolve, reject) => {
+                    const store = getStore(storeName, 'readwrite');
+                    if (!store) return reject("Store no encontrada");
+                    const request = store.add(item);
+                    request.onsuccess = (event) => resolve(event.target.result); // Retorna el ID
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+
+            const put = (storeName, item) => {
+                return new Promise((resolve, reject) => {
+                    const store = getStore(storeName, 'readwrite');
+                    if (!store) return reject("Store no encontrada");
+                    const request = store.put(item);
+                    request.onsuccess = (event) => resolve(event.target.result); // Retorna el ID
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+
+            const get = (storeName, id) => {
+                return new Promise((resolve, reject) => {
+                    const store = getStore(storeName);
+                    if (!store) return reject("Store no encontrada");
+                    const request = store.get(id);
+                    request.onsuccess = (event) => resolve(event.target.result);
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+
+            const getAll = (storeName) => {
+                return new Promise((resolve, reject) => {
+                    const store = getStore(storeName);
+                    if (!store) return reject("Store no encontrada");
+                    const request = store.getAll();
+                    request.onsuccess = (event) => resolve(event.target.result);
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+
+            const getByIndex = (storeName, indexName, value) => {
+                return new Promise((resolve, reject) => {
+                    const store = getStore(storeName);
+                    if (!store) return reject("Store no encontrada");
+                    const index = store.index(indexName);
+                    const request = index.getAll(value);
+                    request.onsuccess = (event) => resolve(event.target.result);
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+
+            const del = (storeName, id) => {
+                return new Promise((resolve, reject) => {
+                    const store = getStore(storeName, 'readwrite');
+                    if (!store) return reject("Store no encontrada");
+                    const request = store.delete(id);
+                    request.onsuccess = () => resolve();
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+            
+            const clearStore = (storeName) => {
+                 return new Promise((resolve, reject) => {
+                    const store = getStore(storeName, 'readwrite');
+                    if (!store) return reject("Store no encontrada");
+                    const request = store.clear();
+                    request.onsuccess = () => resolve();
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            };
+
+            // --- Funciones de Importar/Exportar DB ---
+
+            const exportAllData = async () => {
+                const stores = ['cursos', 'estudiantes', 'notas', 'eventos', 'documentos'];
+                let data = {};
+                
+                for (const storeName of stores) {
+                    data[storeName] = await getAll(storeName);
+                }
+
+                // Convertir blobs de documentos a Base64
+                if (data.documentos) {
+                    data.documentos = await Promise.all(data.documentos.map(async (doc) => {
+                        if (doc.blob) {
+                            doc.blobData = await blobToBase64(doc.blob);
+                            delete doc.blob; // No almacenar el blob en el JSON
+                        }
+                        return doc;
+                    }));
+                }
+                
+                console.log("Datos exportados", data);
+                return data;
+            };
+
+            const importData = async (data) => {
+                const stores = ['cursos', 'estudiantes', 'notas', 'eventos', 'documentos'];
+                
+                for (const storeName of stores) {
+                    if (data[storeName]) {
+                        // Limpiar store antes de importar para evitar duplicados complejos
+                        // Una estrategia de "fusión" real sería más compleja.
+                        // Por simplicidad, esta importación REEMPLAZA los datos.
+                        // El usuario pidió "fusionar", 'put' hace eso si los IDs existen.
+                        
+                        let items = data[storeName];
+
+                        // Convertir Base64 de nuevo a Blobs
+                        if (storeName === 'documentos') {
+                            items = await Promise.all(items.map(async (doc) => {
+                                if (doc.blobData) {
+                                    doc.blob = await base64ToBlob(doc.blobData);
+                                    delete doc.blobData;
+                                }
+                                return doc;
+                            }));
+                        }
+
+                        for (const item of items) {
+                            // Usar 'put' permite sobrescribir si el ID existe (fusión)
+                            // o agregar si es nuevo.
+                            await put(storeName, item);
+                        }
+                    }
+                }
+            };
+            
+            const deleteAllData = async () => {
+                const stores = ['cursos', 'estudiantes', 'notas', 'eventos', 'documentos'];
+                for (const storeName of stores) {
+                    await clearStore(storeName);
+                }
+            };
+
+            return {
+                init,
+                add,
+                put,
+                get,
+                getAll,
+                getByIndex,
+                del,
+                exportAllData,
+                importData,
+                deleteAllData
+            };
+        })();
+
+        /**
+         * ===================================================================
+         * MÓDULO: UI (Manejo del DOM)
+         * (ui.js)
+         * ===================================================================
+         */
+        const UI = (() => {
+            // Selectores de elementos
+            const elements = {
+                appContainer: document.getElementById('app-container'),
+                headerTitle: document.getElementById('header-title'),
+                backBtn: document.getElementById('back-btn'),
+                navButtons: document.querySelectorAll('.nav-btn'),
+                topNavButtons: document.querySelectorAll('.top-nav-btn'),
+                
+                // Dashboard
+                dashboardTitle: document.getElementById('dashboard-title'),
+                dashboardDate: document.getElementById('dashboard-date'),
+                dashboardEventos: document.getElementById('dashboard-eventos'),
+                installPWAButton: document.getElementById('install-pwa-btn'),
+                fabContainer: document.getElementById('fab-container'),
+                fabButton: document.getElementById('fab-button'),
+                fabMenu: document.getElementById('fab-menu'),
+                fabAddCurso: document.getElementById('fab-add-curso'),
+                fabAddEstudiante: document.getElementById('fab-add-estudiante'),
+                fabAddNota: document.getElementById('fab-add-nota'),
+
+                // Cursos
+                cursosList: document.getElementById('cursos-list'),
+                cursosEmpty: document.getElementById('cursos-empty'),
+                formAddCurso: document.getElementById('form-add-curso'),
+                cursoNombreInput: document.getElementById('curso-nombre'),
+
+                // Estudiantes
+                estudiantesTitle: document.getElementById('estudiantes-title'),
+                estudiantesList: document.getElementById('estudiantes-list'),
+                estudiantesEmpty: document.getElementById('estudiantes-empty'),
+                formAddEstudiante: document.getElementById('form-add-estudiante'),
+                estudianteNombreInput: document.getElementById('estudiante-nombre'),
+                estudianteCursoIdInput: document.getElementById('estudiante-curso-id'),
+
+                // Bitácora
+                bitacoraTitle: document.getElementById('bitacora-title'),
+                bitacoraSubtitle: document.getElementById('bitacora-subtitle'),
+                bitacoraTimeline: document.getElementById('bitacora-timeline'),
+                bitacoraEmpty: document.getElementById('bitacora-empty'),
+                formAddNota: document.getElementById('form-add-nota'),
+                notaEstudianteIdInput: document.getElementById('nota-estudiante-id'),
+                notaTextoInput: document.getElementById('nota-texto'),
+                notaTagsInput: document.getElementById('nota-tags'),
+                notaArchivosInput: document.getElementById('nota-archivos'),
+                
+                // Calendario
+                calMonthYear: document.getElementById('cal-month-year'),
+                calGrid: document.getElementById('cal-grid'),
+                calEventosDia: document.getElementById('cal-eventos-dia'),
+                calEventosTitle: document.getElementById('cal-eventos-title'),
+                calEventosList: document.getElementById('cal-eventos-list'),
+                
+                // Settings Menu
+                settingsBtn: document.getElementById('settings-btn'),
+                settingsMenu: document.getElementById('settings-menu'),
+                settingsExport: document.getElementById('settings-export'),
+                settingsImport: document.getElementById('settings-import'),
+                settingsDelete: document.getElementById('settings-delete'),
+                
+                // Import/Export
+                importModal: document.getElementById('import-modal'),
+                importModalClose: document.getElementById('import-modal-close'),
+                importFile: document.getElementById('import-file'),
+                importBtn: document.getElementById('import-btn'),
+                
+                // Modal Add Curso Dashboard
+                addCursoModal: document.getElementById('add-curso-modal'),
+                addCursoModalClose: document.getElementById('add-curso-modal-close'),
+                formAddCursoDashboard: document.getElementById('form-add-curso-dashboard'),
+                cursoNombreDashboard: document.getElementById('curso-nombre-dashboard'),
+                
+                // Modal Add Estudiante Dashboard
+                addEstudianteModal: document.getElementById('add-estudiante-modal'),
+                addEstudianteModalClose: document.getElementById('add-estudiante-modal-close'),
+                formAddEstudianteDashboard: document.getElementById('form-add-estudiante-dashboard'),
+                estudianteCursoDashboard: document.getElementById('estudiante-curso-dashboard'),
+                estudianteNombreDashboard: document.getElementById('estudiante-nombre-dashboard'),
+                
+                // Modal Add Nota Dashboard
+                addNotaModal: document.getElementById('add-nota-modal'),
+                addNotaModalClose: document.getElementById('add-nota-modal-close'),
+                formAddNotaDashboard: document.getElementById('form-add-nota-dashboard'),
+                notaEstudianteDashboard: document.getElementById('nota-estudiante-dashboard'),
+                notaTextoDashboard: document.getElementById('nota-texto-dashboard'),
+                notaTagsDashboard: document.getElementById('nota-tags-dashboard'),
+                notaArchivosDashboard: document.getElementById('nota-archivos-dashboard'),
+
+                // Modal
+                modalContainer: document.getElementById('modal-container'),
+                modalTitle: document.getElementById('modal-title'),
+                modalBody: document.getElementById('modal-body'),
+                modalFooter: document.getElementById('modal-footer'),
+                modalCloseBtn: document.getElementById('modal-close-btn'),
+                
+                // Toast
+                toastContainer: document.getElementById('toast-container'),
+            };
+
+            const showPage = (pageId, isTopNav = false) => {
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(`page-${pageId}`).classList.add('active');
+                
+                // Mostrar/ocultar botón flotante solo en dashboard
+                if (pageId === 'dashboard') {
+                    elements.fabContainer.classList.remove('hidden');
+                } else {
+                    elements.fabContainer.classList.add('hidden');
+                    elements.fabMenu.classList.remove('active');
+                    elements.fabButton.classList.remove('active');
+                }
+                
+                // Actualizar navegación superior
+                if (isTopNav || ['dashboard', 'calendario', 'documentos'].includes(pageId)) {
+                    elements.topNavButtons.forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.page === pageId);
+                    });
+                }
+                
+                // Actualizar navegación inferior
+                if (!isTopNav || ['cursos', 'bitacora-list', 'evaluaciones'].includes(pageId)) {
+                    elements.navButtons.forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.page === pageId);
+                    });
+                }
+                
+                // Actualizar estado de navegación
+                if (AppState.currentPage !== pageId) {
+                    AppState.currentPage = pageId;
+                    
+                    // Manejo del stack de navegación
+                    if (pageId === 'dashboard') {
+                        AppState.navigationStack = ['dashboard'];
+                    } else if (['cursos', 'bitacora-list', 'evaluaciones'].includes(pageId)) {
+                        AppState.navigationStack = ['dashboard', pageId];
+                    }
+                    // 'estudiantes' y 'bitacora' se manejan en sus propias funciones
+                    
+                    updateHeader();
+                }
+            };
+            
+            const navigateTo = (pageId, state = {}) => {
+                if (pageId === 'estudiantes') {
+                    AppState.currentCursoId = state.cursoId;
+                    AppState.currentCursoNombre = state.cursoNombre;
+                    AppState.navigationStack.push('estudiantes');
+                    App.loadEstudiantesPage(); // Cargar datos
+                } else if (pageId === 'bitacora') {
+                    AppState.currentEstudianteId = state.estudianteId;
+                    AppState.currentEstudianteNombre = state.estudianteNombre;
+                    AppState.navigationStack.push('bitacora');
+                    App.loadBitacoraPage(); // Cargar datos
+                }
+                
+                showPage(`page-${pageId}`);
+            };
+            
+            const navigateBack = () => {
+                AppState.navigationStack.pop();
+                const previousPage = AppState.navigationStack[AppState.navigationStack.length - 1];
+                
+                if (previousPage === 'estudiantes') {
+                    App.loadEstudiantesPage();
+                } else if (previousPage === 'cursos') {
+                    App.loadCursosPage();
+                } else if (previousPage === 'dashboard') {
+                    App.loadDashboardPage();
+                }
+                
+                showPage(`page-${previousPage}`);
+            };
+            
+            const updateHeader = () => {
+                const currentPage = AppState.currentPage;
+                if (['dashboard', 'calendario', 'documentos'].includes(currentPage)) {
+                    elements.headerTitle.innerText = "PsicoAgenda";
+                    elements.backBtn.classList.add('hidden');
+                } else if (currentPage === 'cursos') {
+                    elements.headerTitle.innerText = "Mis Cursos";
+                    elements.backBtn.classList.remove('hidden');
+                } else if (currentPage === 'estudiantes') {
+                    elements.headerTitle.innerText = AppState.currentCursoNombre || "Estudiantes";
+                    elements.backBtn.classList.remove('hidden');
+                } else if (currentPage === 'bitacora') {
+                    elements.headerTitle.innerText = AppState.currentEstudianteNombre || "Bitácora";
+                    elements.backBtn.classList.remove('hidden');
+                } else if (['bitacora-list', 'evaluaciones'].includes(currentPage)) {
+                    elements.headerTitle.innerText = currentPage === 'bitacora-list' ? "Bitácora" : "Evaluaciones";
+                    elements.backBtn.classList.add('hidden');
+                }
+            };
+
+            const showToast = (message, type = 'info') => {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                elements.toastContainer.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            };
+
+            const showModal = ({ title, body, footerButtons }) => {
+                elements.modalTitle.innerText = title;
+                elements.modalBody.innerHTML = body; // Usar innerHTML para permitir HTML
+                elements.modalFooter.innerHTML = '';
+                
+                if (footerButtons) {
+                    footerButtons.forEach(btn => {
+                        const button = document.createElement('button');
+                        button.className = `btn ${btn.class}`;
+                        button.innerText = btn.text;
+                        button.onclick = btn.handler;
+                        elements.modalFooter.appendChild(button);
+                    });
+                }
+                
+                elements.modalContainer.classList.remove('hidden');
+            };
+            
+            const hideModal = () => {
+                elements.modalContainer.classList.add('hidden');
+            };
+            
+            const formatDate = (date) => {
+                return new Date(date).toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            };
+            
+            // --- Funciones de Renderizado ---
+            
+            const renderDashboard = (todayEvents) => {
+                const now = new Date();
+                elements.dashboardDate.innerText = now.toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                // Obtener el nombre del usuario desde localStorage
+                const userName = localStorage.getItem('psicoagenda_userName') || '';
+                if (userName) {
+                    elements.dashboardTitle.innerText = `¡Hola ${userName}!`;
+                } else {
+                    elements.dashboardTitle.innerText = `¡Hola! ${getGreeting(now)}`;
+                }
+
+                if (todayEvents.length === 0) {
+                    elements.dashboardEventos.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No hay eventos para hoy.</p>
+                            <p style="font-size: 0.9rem; opacity: 0.7;">¡Disfruta de un día tranquilo! 📅</p>
+                        </div>
+                    `;
+                } else {
+                    elements.dashboardEventos.innerHTML = todayEvents.map((evento, index) => `
+                        <div class="evento-item" style="
+                            background: linear-gradient(135deg, var(--primary-light) 0%, var(--white) 100%);
+                            border-left: 4px solid var(--primary-color);
+                            border-radius: var(--border-radius-sm);
+                            padding: 1rem 1.25rem;
+                            margin-bottom: 0.75rem;
+                            transition: all var(--transition-base);
+                            animation: slideInRight 0.4s ease ${index * 0.1}s both;
+                        ">
+                            <strong style="display: block; font-size: 1.1rem; color: var(--text-color); margin-bottom: 0.25rem;">${evento.titulo}</strong>
+                            <p style="color: var(--text-light); font-size: 0.9rem; margin: 0;">
+                                🕐 ${new Date(evento.fechaInicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            ${evento.descripcion ? `<p style="color: var(--text-light); font-size: 0.85rem; margin-top: 0.5rem; margin-bottom: 0;">${evento.descripcion}</p>` : ''}
+                        </div>
+                    `).join('');
+                }
+            };
+            
+            const getGreeting = (date) => {
+                const hour = date.getHours();
+                if (hour < 12) return "Buenos días";
+                if (hour < 19) return "Buenas tardes";
+                return "Buenas noches";
+            };
+
+            const renderCursos = (cursos) => {
+                if (cursos.length === 0) {
+                    elements.cursosEmpty.classList.remove('hidden');
+                    elements.cursosList.classList.add('hidden');
+                } else {
+                    elements.cursosEmpty.classList.add('hidden');
+                    elements.cursosList.classList.remove('hidden');
+                    elements.cursosList.innerHTML = cursos.map((curso, index) => `
+                        <li class="list-group-item" data-id="${curso.id}" data-nombre="${curso.nombre}" style="animation: slideInRight 0.4s ease ${index * 0.05}s both;">
+                            <strong style="font-size: 1.1rem;">${curso.nombre}</strong>
+                            <div class="actions">
+                                <button class="btn btn-danger-outline btn-sm delete-curso-btn" data-id="${curso.id}">🗑️ Borrar</button>
+                            </div>
+                        </li>
+                    `).join('');
+                }
+            };
+            
+            const renderEstudiantes = (estudiantes, curso) => {
+                elements.estudiantesTitle.innerText = curso.nombre;
+                elements.estudianteCursoIdInput.value = curso.id;
+                
+                 if (estudiantes.length === 0) {
+                    elements.estudiantesEmpty.classList.remove('hidden');
+                    elements.estudiantesList.classList.add('hidden');
+                } else {
+                    elements.estudiantesEmpty.classList.add('hidden');
+                    elements.estudiantesList.classList.remove('hidden');
+                    elements.estudiantesList.innerHTML = estudiantes.map((est, index) => `
+                        <li class="list-group-item" data-id="${est.id}" data-nombre="${est.nombre}" style="animation: slideInRight 0.4s ease ${index * 0.05}s both;">
+                            <strong style="font-size: 1.1rem;">👤 ${est.nombre}</strong>
+                             <div class="actions">
+                                <button class="btn btn-danger-outline btn-sm delete-estudiante-btn" data-id="${est.id}">🗑️ Borrar</button>
+                            </div>
+                        </li>
+                    `).join('');
+                }
+            };
+            
+            const renderBitacora = (notas, estudiante) => {
+                elements.bitacoraTitle.innerText = `Bitácora de ${estudiante.nombre}`;
+                elements.bitacoraSubtitle.innerText = `Curso: ${AppState.currentCursoNombre}`;
+                elements.notaEstudianteIdInput.value = estudiante.id;
+                
+                if (notas.length === 0) {
+                    elements.bitacoraEmpty.classList.remove('hidden');
+                    elements.bitacoraTimeline.classList.add('hidden');
+                } else {
+                    elements.bitacoraEmpty.classList.add('hidden');
+                    elements.bitacoraTimeline.classList.remove('hidden');
+                    
+                    // Ordenar notas por fecha, de más nueva a más antigua
+                    notas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                    
+                    elements.bitacoraTimeline.innerHTML = notas.map((nota, index) => `
+                        <div class="bitacora-item" style="animation: slideInRight 0.4s ease ${index * 0.1}s both;">
+                            <div class="bitacora-content">
+                                <div class="bitacora-date" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                    <span style="font-size: 1.2rem;">📅</span>
+                                    <span>${formatDate(nota.fecha)}</span>
+                                </div>
+                                <p class="bitacora-text" style="line-height: 1.7; color: var(--text-color);">${nota.texto.replace(/\n/g, '<br>')}</p>
+                                ${nota.tags && nota.tags.length > 0 ? `
+                                    <div class="bitacora-tags" style="margin-top: 1rem; margin-bottom: 1rem;">
+                                        ${nota.tags.map(tag => `<span class="tag">🏷️ ${tag}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                ${nota.documentoIds && nota.documentoIds.length > 0 ? `
+                                    <ul class="attachment-list" style="margin-top: 1rem; margin-bottom: 1rem; list-style: none; padding: 0;">
+                                        ${nota.documentoIds.map(doc => `
+                                            <li data-doc-id="${doc.id}" style="
+                                                padding: 0.5rem 1rem;
+                                                background: var(--accent-light);
+                                                color: var(--accent-color);
+                                                border-radius: var(--border-radius-sm);
+                                                margin-bottom: 0.5rem;
+                                                cursor: pointer;
+                                                transition: all var(--transition-base);
+                                                display: inline-block;
+                                                margin-right: 0.5rem;
+                                            " onmouseover="this.style.background='var(--accent-color)'; this.style.color='var(--white)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='var(--accent-light)'; this.style.color='var(--accent-color)'; this.style.transform='scale(1)'">
+                                                📎 ${doc.nombre}
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                ` : ''}
+                                <div class="actions" style="margin-top: 1rem;">
+                                    <button class="btn btn-danger-outline btn-sm delete-nota-btn" data-id="${nota.id}">🗑️ Borrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            };
+            
+            const renderCalendario = (currentDate, eventos) => {
+                elements.calMonthYear.innerText = currentDate.toLocaleDateString('es-ES', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+                
+                elements.calGrid.innerHTML = ''; // Limpiar grid
+                
+                const month = currentDate.getMonth();
+                const year = currentDate.getFullYear();
+                
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const today = new Date();
+
+                // Rellenar días del mes anterior
+                for (let i = 0; i < firstDay; i++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'cal-day other-month';
+                    elements.calGrid.appendChild(dayEl);
+                }
+                
+                // Rellenar días del mes actual
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'cal-day';
+                    dayEl.dataset.day = i;
+                    dayEl.dataset.month = month;
+                    dayEl.dataset.year = year;
+                    
+                    const dayDate = new Date(year, month, i);
+                    
+                    if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                        dayEl.classList.add('today');
+                    }
+                    
+                    dayEl.innerHTML = `<span>${i}</span>`;
+                    
+                    // Buscar eventos para este día
+                    const dayEvents = eventos.filter(e => {
+                        const eDate = new Date(e.fechaInicio);
+                        return eDate.getDate() === i && eDate.getMonth() === month && eDate.getFullYear() === year;
+                    });
+                    
+                    if (dayEvents.length > 0) {
+                        const dot = document.createElement('div');
+                        dot.className = 'event-dot';
+                        dayEl.appendChild(dot);
+                    }
+                    
+                    elements.calGrid.appendChild(dayEl);
+                }
+            };
+            
+            const renderCalendarioEventosDia = (date, eventos) => {
+                elements.calEventosDia.classList.remove('hidden');
+                elements.calEventosTitle.innerText = `Eventos para ${date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`;
+                
+                if (eventos.length === 0) {
+                    elements.calEventosList.innerHTML = '<li class="list-group-item">No hay eventos</li>';
+                } else {
+                    eventos.sort((a,b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+                    elements.calEventosList.innerHTML = eventos.map((e, index) => `
+                        <li class="list-group-item" style="animation: slideInRight 0.4s ease ${index * 0.1}s both;">
+                            <div>
+                                <strong style="font-size: 1.1rem; display: block; margin-bottom: 0.5rem;">${e.titulo}</strong>
+                                <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.25rem;">
+                                    🕐 ${new Date(e.fechaInicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                                ${e.descripcion ? `<p style="font-size: 0.9rem; color: var(--text-light); margin: 0;">${e.descripcion}</p>` : ''}
+                            </div>
+                            <button class="btn btn-danger-outline btn-sm delete-evento-btn" data-id="${e.id}">🗑️ Borrar</button>
+                        </li>
+                    `).join('');
+                }
+            };
+
+
+            return {
+                elements,
+                showPage,
+                navigateTo,
+                navigateBack,
+                updateHeader,
+                showToast,
+                showModal,
+                hideModal,
+                formatDate,
+                renderDashboard,
+                renderCursos,
+                renderEstudiantes,
+                renderBitacora,
+                renderCalendario,
+                renderCalendarioEventosDia
+            };
+        })();
+
+        /**
+         * ===================================================================
+         * MÓDULO: ImportExport
+         * (importExport.js)
+         * ===================================================================
+         */
+        const ImportExport = (() => {
+
+            const exportToJson = async () => {
+                try {
+                    UI.showToast('Iniciando exportación... esto puede tardar.');
+                    const data = await DB.exportAllData();
+                    const json = JSON.stringify(data, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `psicoagenda_backup_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    UI.showToast('Exportación completada.', 'success');
+                    
+                } catch (error) {
+                    console.error('Error al exportar:', error);
+                    UI.showToast('Error al exportar.', 'error');
+                }
+            };
+
+            const importFromJson = (file) => {
+                return new Promise((resolve, reject) => {
+                    if (!file) {
+                        UI.showToast('No se seleccionó ningún archivo.', 'error');
+                        reject(new Error('No se seleccionó ningún archivo'));
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            
+                            // Validación simple
+                            if (!data.cursos || !data.estudiantes || !data.notas) {
+                                throw new Error('Archivo JSON no válido. Faltan estructuras de datos.');
+                            }
+                            
+                            UI.showModal({
+                                title: 'Confirmar Importación',
+                                body: '<p>Estás a punto de importar datos. Esto fusionará los datos del archivo con los datos existentes. ¿Deseas continuar?</p>',
+                                footerButtons: [
+                                    { text: 'Cancelar', class: 'btn-secondary', handler: () => {
+                                        UI.hideModal();
+                                        reject(new Error('Importación cancelada'));
+                                    }},
+                                    { text: 'Importar', class: 'btn-primary', handler: async () => {
+                                        UI.hideModal();
+                                        // Cerrar también el modal de importar
+                                        const importModal = document.getElementById('import-modal');
+                                        if (importModal) importModal.classList.add('hidden');
+                                        
+                                        UI.showToast('Importando datos... esto puede tardar.');
+                                        try {
+                                            await DB.importData(data);
+                                            UI.showToast('Importación completada.', 'success');
+                                            App.loadDashboardPage(); // Recargar la app
+                                            resolve();
+                                        } catch (error) {
+                                            UI.showToast('Error al importar datos.', 'error');
+                                            reject(error);
+                                        }
+                                    }}
+                                ]
+                            });
+                            
+                        } catch (error) {
+                            console.error('Error al importar:', error);
+                            UI.showToast(`Error al importar: ${error.message}`, 'error');
+                            reject(error);
+                        }
+                    };
+                    
+                    reader.onerror = () => {
+                         UI.showToast('Error al leer el archivo.', 'error');
+                         reject(new Error('Error al leer el archivo'));
+                    };
+                    
+                    reader.readAsText(file);
+                });
+            };
+
+            return {
+                exportToJson,
+                importFromJson
+            };
+        })();
+
+
+        /**
+         * ===================================================================
+         * MÓDULO: App (Lógica principal y eventos)
+         * (app.js)
+         * ===================================================================
+         */
+        const App = (() => {
+            const el = UI.elements;
+            let calCurrentDate = new Date(); // Estado para el calendario
+            let calEventos = []; // Caché de eventos del calendario
+
+            // Función para obtener el nombre del usuario desde localStorage
+            const getUserName = () => {
+                return localStorage.getItem('psicoagenda_userName') || null;
+            };
+
+            // Función para guardar el nombre del usuario
+            const saveUserName = (name) => {
+                if (name && name.trim()) {
+                    localStorage.setItem('psicoagenda_userName', name.trim());
+                    return true;
+                }
+                return false;
+            };
+
+            // Mostrar modal de bienvenida para obtener el nombre
+            const showWelcomeModal = () => {
+                UI.showModal({
+                    title: '👋 ¡Bienvenido a PsicoAgenda!',
+                    body: `
+                        <div style="text-align: center; padding: 1rem 0;">
+                            <p style="margin-bottom: 1.5rem; color: var(--text-light); font-size: 1.1rem;">
+                                Para personalizar tu experiencia, por favor ingresa tu nombre:
+                            </p>
+                            <form id="form-welcome-name">
+                                <div class="form-group">
+                                    <input 
+                                        type="text" 
+                                        id="user-name-input" 
+                                        class="form-control" 
+                                        placeholder="Tu nombre"
+                                        required
+                                        autofocus
+                                        style="text-align: center; font-size: 1.1rem; padding: 1rem;"
+                                    >
+                                </div>
+                            </form>
+                        </div>
+                    `,
+                    footerButtons: [
+                        { 
+                            text: 'Continuar', 
+                            class: 'btn-primary', 
+                            handler: () => {
+                                const nameInput = document.getElementById('user-name-input');
+                                const name = nameInput ? nameInput.value.trim() : '';
+                                
+                                if (!name) {
+                                    UI.showToast('Por favor ingresa tu nombre', 'error');
+                                    if (nameInput) nameInput.focus();
+                                    return;
+                                }
+                                
+                                if (saveUserName(name)) {
+                                    UI.showToast(`¡Bienvenido, ${name}!`, 'success');
+                                    UI.hideModal();
+                                    loadDashboardPage(); // Recargar dashboard con el nombre
+                                }
+                            }
+                        }
+                    ]
+                });
+                
+                // Permitir enviar con Enter
+                setTimeout(() => {
+                    const nameInput = document.getElementById('user-name-input');
+                    if (nameInput) {
+                        nameInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const footerBtn = document.querySelector('#modal-footer .btn-primary');
+                                if (footerBtn) footerBtn.click();
+                            }
+                        });
+                        nameInput.focus();
+                    }
+                }, 100);
+            };
+
+            const init = async () => {
+                try {
+                    await DB.init();
+                    console.log('DB inicializada, configurando eventos...');
+                    setupEventListeners();
+                    registerServiceWorker();
+                    
+                    // Verificar si el usuario tiene un nombre guardado
+                    const userName = getUserName();
+                    if (!userName) {
+                        // Mostrar modal de bienvenida antes de cargar el dashboard
+                        showWelcomeModal();
+                    } else {
+                        loadDashboardPage();
+                    }
+                } catch (error) {
+                    console.error('Error fatal al iniciar la app:', error);
+                    document.body.innerHTML = '<h1>Error al cargar la base de datos.</h1>';
+                }
+            };
+
+            const registerServiceWorker = () => {
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('service-worker.js')
+                            .then(registration => {
+                                console.log('ServiceWorker registrado con éxito:', registration.scope);
+                            })
+                            .catch(error => {
+                                console.log('Error en el registro de ServiceWorker:', error);
+                            });
+                    });
+                }
+            };
+            
+            const setupPWAInstall = (event) => {
+                 // Prevenir que el navegador muestre su propio prompt
+                event.preventDefault();
+                // Guardar el evento para usarlo después
+                deferredInstallPrompt = event;
+                // Mostrar nuestro botón de instalación
+                el.installPWAButton.classList.remove('hidden');
+            };
+
+            const setupEventListeners = () => {
+                // Evento PWA
+                window.addEventListener('beforeinstallprompt', setupPWAInstall);
+                el.installPWAButton.addEventListener('click', promptInstallPWA);
+                
+                // Navegación superior (tabs)
+                el.topNavButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const pageId = btn.dataset.page;
+                        if (pageId === 'dashboard') loadDashboardPage();
+                        else if (pageId === 'calendario') loadCalendarioPage();
+                        else if (pageId === 'documentos') loadDocumentosPage();
+                        UI.showPage(pageId, true);
+                    });
+                });
+                
+                // Navegación inferior
+                el.navButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const pageId = btn.dataset.page;
+                        if (pageId === 'cursos') loadCursosPage();
+                        else if (pageId === 'bitacora-list') loadBitacoraListPage();
+                        else if (pageId === 'evaluaciones') loadEvaluacionesPage();
+                        UI.showPage(pageId);
+                    });
+                });
+                
+                el.backBtn.addEventListener('click', UI.navigateBack);
+
+                // --- Cursos ---
+                el.formAddCurso.addEventListener('submit', handleAddCurso);
+                el.cursosList.addEventListener('click', (e) => {
+                    if (e.target.closest('.delete-curso-btn')) {
+                        handleDeleteCurso(e.target.closest('.delete-curso-btn').dataset.id);
+                    } else if (e.target.closest('.list-group-item')) {
+                        const item = e.target.closest('.list-group-item');
+                        UI.navigateTo('estudiantes', {
+                            cursoId: parseInt(item.dataset.id),
+                            cursoNombre: item.dataset.nombre
+                        });
+                    }
+                });
+                
+                // --- Estudiantes ---
+                el.formAddEstudiante.addEventListener('submit', handleAddEstudiante);
+                el.estudiantesList.addEventListener('click', (e) => {
+                     if (e.target.closest('.delete-estudiante-btn')) {
+                        handleDeleteEstudiante(e.target.closest('.delete-estudiante-btn').dataset.id);
+                    } else if (e.target.closest('.list-group-item')) {
+                        const item = e.target.closest('.list-group-item');
+                        UI.navigateTo('bitacora', {
+                            estudianteId: parseInt(item.dataset.id),
+                            estudianteNombre: item.dataset.nombre
+                        });
+                    }
+                });
+                
+                // --- Bitácora ---
+                el.formAddNota.addEventListener('submit', handleAddNota);
+                el.bitacoraTimeline.addEventListener('click', async (e) => {
+                    if (e.target.closest('.delete-nota-btn')) {
+                        handleDeleteNota(e.target.closest('.delete-nota-btn').dataset.id);
+                    }
+                    if (e.target.closest('[data-doc-id]')) {
+                        const docId = parseInt(e.target.closest('[data-doc-id]').dataset.docId);
+                        await handleDownloadDocumento(docId);
+                    }
+                });
+                
+                // --- Bitácora List ---
+                document.addEventListener('click', async (e) => {
+                    if (e.target.closest('#bitacora-list-timeline .delete-nota-btn')) {
+                        handleDeleteNota(e.target.closest('.delete-nota-btn').dataset.id);
+                    }
+                });
+                
+                // --- Calendario ---
+                document.getElementById('cal-prev').addEventListener('click', () => {
+                    calCurrentDate.setMonth(calCurrentDate.getMonth() - 1);
+                    loadCalendarioPage();
+                });
+                document.getElementById('cal-next').addEventListener('click', () => {
+                    calCurrentDate.setMonth(calCurrentDate.getMonth() + 1);
+                    loadCalendarioPage();
+                });
+                el.calGrid.addEventListener('click', (e) => {
+                    const dayEl = e.target.closest('.cal-day:not(.other-month)');
+                    if (dayEl) {
+                        const date = new Date(dayEl.dataset.year, dayEl.dataset.month, dayEl.dataset.day);
+                        showCalendarioModal(date);
+                    }
+                });
+                el.calEventosList.addEventListener('click', (e) => {
+                    if (e.target.closest('.delete-evento-btn')) {
+                        handleDeleteEvento(e.target.closest('.delete-evento-btn').dataset.id);
+                    }
+                });
+
+                // --- Menú de Configuración ---
+                el.settingsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    el.settingsMenu.classList.toggle('active');
+                    el.settingsMenu.classList.toggle('hidden');
+                });
+                
+                // Cerrar menú al hacer click fuera
+                document.addEventListener('click', (e) => {
+                    if (!el.settingsMenu.contains(e.target) && !el.settingsBtn.contains(e.target)) {
+                        el.settingsMenu.classList.remove('active');
+                        el.settingsMenu.classList.add('hidden');
+                    }
+                });
+                
+                // Opciones del menú
+                el.settingsExport.addEventListener('click', async () => {
+                    el.settingsMenu.classList.remove('active');
+                    el.settingsMenu.classList.add('hidden');
+                    await ImportExport.exportToJson();
+                });
+                
+                el.settingsImport.addEventListener('click', () => {
+                    el.settingsMenu.classList.remove('active');
+                    el.settingsMenu.classList.add('hidden');
+                    el.importModal.classList.remove('hidden');
+                });
+                
+                el.settingsDelete.addEventListener('click', () => {
+                    el.settingsMenu.classList.remove('active');
+                    el.settingsMenu.classList.add('hidden');
+                    handleDeleteAllData();
+                });
+                
+                // --- Import/Export ---
+                el.importFile.addEventListener('change', (e) => {
+                    el.importBtn.disabled = !e.target.files || e.target.files.length === 0;
+                });
+                
+                el.importBtn.addEventListener('click', async () => {
+                    const file = el.importFile.files[0];
+                    if (!file) {
+                        UI.showToast('Por favor selecciona un archivo.', 'error');
+                        return;
+                    }
+                    try {
+                        await ImportExport.importFromJson(file);
+                        // El modal se cerrará automáticamente después de la confirmación
+                    } catch (error) {
+                        // Si hay error, mantener el modal abierto
+                        console.error('Error en importación:', error);
+                    }
+                });
+                
+                el.importModalClose.addEventListener('click', () => {
+                    el.importModal.classList.add('hidden');
+                });
+                
+                el.importModal.addEventListener('click', (e) => {
+                    if (e.target === el.importModal) {
+                        el.importModal.classList.add('hidden');
+                    }
+                });
+                
+                // --- Botón flotante con menú desplegable ---
+                el.fabButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    el.fabMenu.classList.toggle('active');
+                    el.fabButton.classList.toggle('active');
+                });
+                
+                // Cerrar menú al hacer click fuera
+                document.addEventListener('click', (e) => {
+                    if (!el.fabContainer.contains(e.target)) {
+                        el.fabMenu.classList.remove('active');
+                        el.fabButton.classList.remove('active');
+                    }
+                });
+                
+                // Opción 1: Agregar Curso
+                el.fabAddCurso.addEventListener('click', async () => {
+                    el.fabMenu.classList.remove('active');
+                    el.fabButton.classList.remove('active');
+                    el.addCursoModal.classList.remove('hidden');
+                    el.cursoNombreDashboard.focus();
+                });
+                
+                // Opción 2: Agregar Estudiante
+                el.fabAddEstudiante.addEventListener('click', async () => {
+                    el.fabMenu.classList.remove('active');
+                    el.fabButton.classList.remove('active');
+                    
+                    // Cargar cursos para el select
+                    const cursos = await DB.getAll('cursos');
+                    cursos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                    
+                    // Llenar select de cursos
+                    el.estudianteCursoDashboard.innerHTML = '<option value="">Selecciona un curso</option>' +
+                        cursos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                    
+                    el.addEstudianteModal.classList.remove('hidden');
+                    el.estudianteNombreDashboard.focus();
+                });
+                
+                // Opción 3: Agregar Nota
+                el.fabAddNota.addEventListener('click', async () => {
+                    el.fabMenu.classList.remove('active');
+                    el.fabButton.classList.remove('active');
+                    
+                    // Cargar estudiantes para el select
+                    const estudiantes = await DB.getAll('estudiantes');
+                    const cursos = await DB.getAll('cursos');
+                    
+                    // Crear mapas
+                    const cursosMap = new Map(cursos.map(c => [c.id, c]));
+                    
+                    // Llenar select de estudiantes
+                    el.notaEstudianteDashboard.innerHTML = '<option value="">Selecciona un estudiante</option>' +
+                        estudiantes.map(e => {
+                            const curso = cursosMap.get(e.cursoId);
+                            return `<option value="${e.id}">${e.nombre}${curso ? ` - ${curso.nombre}` : ''}</option>`;
+                        }).join('');
+                    
+                    // Mostrar modal
+                    el.addNotaModal.classList.remove('hidden');
+                    el.notaTextoDashboard.focus();
+                });
+                
+                // --- Modales de agregar desde dashboard ---
+                
+                // Modal Agregar Curso
+                el.addCursoModalClose.addEventListener('click', () => {
+                    el.addCursoModal.classList.add('hidden');
+                    el.formAddCursoDashboard.reset();
+                });
+                
+                el.addCursoModal.addEventListener('click', (e) => {
+                    if (e.target === el.addCursoModal) {
+                        el.addCursoModal.classList.add('hidden');
+                        el.formAddCursoDashboard.reset();
+                    }
+                });
+                
+                el.formAddCursoDashboard.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const nombre = el.cursoNombreDashboard.value.trim();
+                    if (!nombre) {
+                        UI.showToast('Por favor ingresa un nombre de curso.', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        await DB.add('cursos', { nombre });
+                        UI.showToast('Curso agregado.', 'success');
+                        el.formAddCursoDashboard.reset();
+                        el.addCursoModal.classList.add('hidden');
+                        loadDashboardPage(); // Recargar para mostrar el nuevo curso si es necesario
+                    } catch (error) {
+                        console.error('Error al agregar curso:', error);
+                        UI.showToast('Error al agregar curso.', 'error');
+                    }
+                });
+                
+                // Modal Agregar Estudiante
+                el.addEstudianteModalClose.addEventListener('click', () => {
+                    el.addEstudianteModal.classList.add('hidden');
+                    el.formAddEstudianteDashboard.reset();
+                });
+                
+                el.addEstudianteModal.addEventListener('click', (e) => {
+                    if (e.target === el.addEstudianteModal) {
+                        el.addEstudianteModal.classList.add('hidden');
+                        el.formAddEstudianteDashboard.reset();
+                    }
+                });
+                
+                el.formAddEstudianteDashboard.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const nombre = el.estudianteNombreDashboard.value.trim();
+                    const cursoId = parseInt(el.estudianteCursoDashboard.value);
+                    
+                    if (!nombre || !cursoId) {
+                        UI.showToast('Por favor completa todos los campos.', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        await DB.add('estudiantes', { nombre, cursoId, etiquetas: [], observaciones: "" });
+                        UI.showToast('Estudiante agregado.', 'success');
+                        el.formAddEstudianteDashboard.reset();
+                        el.addEstudianteModal.classList.add('hidden');
+                        loadDashboardPage(); // Recargar dashboard
+                    } catch (error) {
+                        console.error('Error al agregar estudiante:', error);
+                        UI.showToast('Error al agregar estudiante.', 'error');
+                    }
+                });
+                
+                // Modal Agregar Nota
+                el.addNotaModalClose.addEventListener('click', () => {
+                    el.addNotaModal.classList.add('hidden');
+                    el.formAddNotaDashboard.reset();
+                });
+                
+                el.addNotaModal.addEventListener('click', (e) => {
+                    if (e.target === el.addNotaModal) {
+                        el.addNotaModal.classList.add('hidden');
+                        el.formAddNotaDashboard.reset();
+                    }
+                });
+                
+                // Formulario de agregar nota desde dashboard
+                el.formAddNotaDashboard.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const estudianteId = parseInt(el.notaEstudianteDashboard.value);
+                    const texto = el.notaTextoDashboard.value.trim();
+                    const tags = el.notaTagsDashboard.value.split(',').map(t => t.trim()).filter(Boolean);
+                    const files = el.notaArchivosDashboard.files;
+                    
+                    if (!texto || !estudianteId) {
+                        UI.showToast('Por favor completa todos los campos requeridos.', 'error');
+                        return;
+                    }
+
+                    try {
+                        UI.showToast('Guardando nota...');
+                        
+                        let documentoIds = [];
+                        // Subir archivos a la DB de documentos
+                        if (files.length > 0) {
+                            for (const file of files) {
+                                const doc = {
+                                    nombre: file.name,
+                                    tipo: file.type,
+                                    blob: file,
+                                    fecha: new Date().toISOString(),
+                                    estudianteId: estudianteId
+                                };
+                                const docId = await DB.add('documentos', doc);
+                                documentoIds.push(docId);
+                            }
+                        }
+                        
+                        const nota = {
+                            estudianteId,
+                            texto,
+                            tags,
+                            fecha: new Date().toISOString(),
+                            documentoIds: documentoIds
+                        };
+                        
+                        await DB.add('notas', nota);
+                        UI.showToast('Nota guardada.', 'success');
+                        el.formAddNotaDashboard.reset();
+                        el.addNotaModal.classList.add('hidden');
+                        
+                        // Recargar dashboard o la página de bitácora si está activa
+                        if (AppState.currentPage === 'dashboard') {
+                            loadDashboardPage();
+                        } else if (AppState.currentPage === 'bitacora-list') {
+                            loadBitacoraListPage();
+                        }
+                        
+                    } catch (error) {
+                        console.error("Error al guardar nota:", error);
+                        UI.showToast('Error al guardar la nota.', 'error');
+                    }
+                });
+
+                // --- Modal ---
+                el.modalCloseBtn.addEventListener('click', UI.hideModal);
+                el.modalContainer.addEventListener('click', (e) => {
+                    if (e.target === el.modalContainer) UI.hideModal();
+                });
+            };
+            
+            // --- Handlers de Carga de Página ---
+            
+            const loadDashboardPage = async () => {
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                const todayEnd = new Date();
+                todayEnd.setHours(23, 59, 59, 999);
+
+                const allEventos = await DB.getAll('eventos');
+                const todayEvents = allEventos.filter(e => {
+                    const eDate = new Date(e.fechaInicio);
+                    return eDate >= todayStart && eDate <= todayEnd;
+                });
+                
+                todayEvents.sort((a,b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+
+                UI.renderDashboard(todayEvents);
+            };
+            
+            const loadCursosPage = async () => {
+                const cursos = await DB.getAll('cursos');
+                cursos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                UI.renderCursos(cursos);
+            };
+            
+            const loadDocumentosPage = async () => {
+                const todosDocumentos = await DB.getAll('documentos');
+                const estudiantes = await DB.getAll('estudiantes');
+                const cursos = await DB.getAll('cursos');
+                
+                // Crear mapas para búsqueda rápida
+                const estudiantesMap = new Map(estudiantes.map(e => [e.id, e]));
+                const cursosMap = new Map(cursos.map(c => [c.id, c]));
+                
+                // Renderizar documentos
+                const documentosList = document.getElementById('documentos-list');
+                const documentosEmpty = document.getElementById('documentos-empty');
+                
+                if (todosDocumentos.length === 0) {
+                    documentosList.classList.add('hidden');
+                    documentosEmpty.classList.remove('hidden');
+                } else {
+                    documentosList.classList.remove('hidden');
+                    documentosEmpty.classList.add('hidden');
+                    
+                    documentosList.innerHTML = todosDocumentos.map((doc, index) => {
+                        const estudiante = estudiantesMap.get(doc.estudianteId);
+                        const curso = estudiante ? cursosMap.get(estudiante.cursoId) : null;
+                        return `
+                            <li class="list-group-item" style="animation: slideInRight 0.4s ease ${index * 0.05}s both;">
+                                <div>
+                                    <strong style="font-size: 1.1rem;">📎 ${doc.nombre}</strong>
+                                    <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 0.25rem;">
+                                        ${estudiante ? `👤 ${estudiante.nombre}${curso ? ` - ${curso.nombre}` : ''}` : 'Estudiante no encontrado'}
+                                    </p>
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="App.downloadDocumento(${doc.id})">Descargar</button>
+                            </li>
+                        `;
+                    }).join('');
+                }
+            };
+            
+            const loadBitacoraListPage = async () => {
+                const todasNotas = await DB.getAll('notas');
+                const estudiantes = await DB.getAll('estudiantes');
+                const cursos = await DB.getAll('cursos');
+                
+                // Crear mapas
+                const estudiantesMap = new Map(estudiantes.map(e => [e.id, e]));
+                const cursosMap = new Map(cursos.map(c => [c.id, c]));
+                
+                // Enriquecer notas
+                for (let nota of todasNotas) {
+                    nota.estudiante = estudiantesMap.get(nota.estudianteId);
+                    if (nota.estudiante) {
+                        nota.curso = cursosMap.get(nota.estudiante.cursoId);
+                    }
+                    if (nota.documentoIds && nota.documentoIds.length > 0) {
+                        const docs = await Promise.all(
+                            nota.documentoIds.map(id => DB.get('documentos', id))
+                        );
+                        nota.documentoIds = docs.map(d => ({ id: d.id, nombre: d.nombre }));
+                    }
+                }
+                
+                // Ordenar por fecha
+                todasNotas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                
+                // Renderizar
+                const bitacoraListTimeline = document.getElementById('bitacora-list-timeline');
+                const bitacoraListEmpty = document.getElementById('bitacora-list-empty');
+                
+                if (todasNotas.length === 0) {
+                    bitacoraListTimeline.classList.add('hidden');
+                    bitacoraListEmpty.classList.remove('hidden');
+                } else {
+                    bitacoraListTimeline.classList.remove('hidden');
+                    bitacoraListEmpty.classList.add('hidden');
+                    
+                    bitacoraListTimeline.innerHTML = todasNotas.map((nota, index) => `
+                        <div class="bitacora-item" style="animation: slideInRight 0.4s ease ${index * 0.1}s both;">
+                            <div class="bitacora-content">
+                                <div class="bitacora-date" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                    <span style="font-size: 1.2rem;">📅</span>
+                                    <span>${UI.formatDate(nota.fecha)}</span>
+                                    ${nota.estudiante ? `
+                                        <span style="color: var(--primary-color); font-weight: 600;">
+                                            - 👤 ${nota.estudiante.nombre}${nota.curso ? ` (${nota.curso.nombre})` : ''}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                <p class="bitacora-text" style="line-height: 1.7; color: var(--text-color);">${nota.texto.replace(/\n/g, '<br>')}</p>
+                                ${nota.tags && nota.tags.length > 0 ? `
+                                    <div class="bitacora-tags" style="margin-top: 1rem; margin-bottom: 1rem;">
+                                        ${nota.tags.map(tag => `<span class="tag">🏷️ ${tag}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                <div class="actions" style="margin-top: 1rem;">
+                                    <button class="btn btn-danger-outline btn-sm delete-nota-btn" data-id="${nota.id}">🗑️ Borrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            };
+            
+            const loadEvaluacionesPage = async () => {
+                // Cargar cursos y estudiantes para los selects
+                const cursos = await DB.getAll('cursos');
+                const estudiantes = await DB.getAll('estudiantes');
+                
+                // Llenar selects de filtros y formulario
+                const cursoFilter = document.getElementById('evaluacion-curso-filter');
+                const estudianteFilter = document.getElementById('evaluacion-estudiante-filter');
+                const evaluacionEstudiante = document.getElementById('evaluacion-estudiante');
+                
+                if (cursoFilter) {
+                    cursoFilter.innerHTML = '<option value="">Todos los cursos</option>' + 
+                        cursos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                }
+                
+                if (estudianteFilter && evaluacionEstudiante) {
+                    const fillEstudiantes = (select) => {
+                        select.innerHTML = '<option value="">Selecciona un estudiante</option>' +
+                            estudiantes.map(e => {
+                                const curso = cursos.find(c => c.id === e.cursoId);
+                                return `<option value="${e.id}">${e.nombre}${curso ? ` - ${curso.nombre}` : ''}</option>`;
+                            }).join('');
+                    };
+                    fillEstudiantes(estudianteFilter);
+                    fillEstudiantes(evaluacionEstudiante);
+                }
+                
+                // TODO: Cargar y mostrar evaluaciones (necesitarías crear un store 'evaluaciones' en IndexedDB)
+                const evaluacionesList = document.getElementById('evaluaciones-list');
+                const evaluacionesEmpty = document.getElementById('evaluaciones-empty');
+                
+                // Por ahora mostrar vacío
+                if (evaluacionesList) {
+                    evaluacionesList.classList.add('hidden');
+                }
+                if (evaluacionesEmpty) {
+                    evaluacionesEmpty.classList.remove('hidden');
+                }
+            };
+            
+            const loadEstudiantesPage = async () => {
+                const cursoId = AppState.currentCursoId;
+                if (!cursoId) return UI.navigateBack();
+                
+                const curso = await DB.get('cursos', cursoId);
+                const estudiantes = await DB.getByIndex('estudiantes', 'cursoId', cursoId);
+                estudiantes.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                UI.renderEstudiantes(estudiantes, curso);
+            };
+            
+            const loadBitacoraPage = async () => {
+                const estudianteId = AppState.currentEstudianteId;
+                if (!estudianteId) return UI.navigateBack();
+                
+                const estudiante = await DB.get('estudiantes', estudianteId);
+                let notas = await DB.getByIndex('notas', 'estudianteId', estudianteId);
+                
+                // Enriquecer notas con detalles de documentos
+                for (let nota of notas) {
+                    if (nota.documentoIds && nota.documentoIds.length > 0) {
+                        const docs = await Promise.all(
+                            nota.documentoIds.map(id => DB.get('documentos', id))
+                        );
+                        // Guardamos solo id y nombre para el renderizado
+                        nota.documentoIds = docs.map(d => ({ id: d.id, nombre: d.nombre }));
+                    }
+                }
+                
+                UI.renderBitacora(notas, estudiante);
+            };
+            
+            const loadCalendarioPage = async () => {
+                calEventos = await DB.getAll('eventos');
+                UI.renderCalendario(calCurrentDate, calEventos);
+                
+                // Limpiar vista de eventos del día
+                el.calEventosDia.classList.add('hidden');
+            };
+            
+            // Función para descargar documento (pública)
+            const downloadDocumento = async (docId) => {
+                try {
+                    const doc = await DB.get('documentos', docId);
+                    if (!doc || !doc.blob) {
+                        UI.showToast('No se encontró el archivo.', 'error');
+                        return;
+                    }
+                    
+                    const url = URL.createObjectURL(doc.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = doc.nombre;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    console.error("Error al descargar archivo:", error);
+                    UI.showToast('Error al descargar archivo.', 'error');
+                }
+            };
+            
+            // --- Handlers de Acciones ---
+            
+            const promptInstallPWA = async () => {
+                if (!deferredInstallPrompt) {
+                    UI.showToast('La aplicación ya está instalada o no se puede instalar.');
+                    return;
+                }
+                // Mostrar el prompt de instalación del navegador
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Usuario aceptó la instalación');
+                    el.installPWAButton.classList.add('hidden');
+                } else {
+                    console.log('Usuario rechazó la instalación');
+                }
+                deferredInstallPrompt = null;
+            };
+
+            const handleAddCurso = async (e) => {
+                e.preventDefault();
+                const nombre = el.cursoNombreInput.value.trim();
+                if (!nombre) return;
+                
+                await DB.add('cursos', { nombre });
+                UI.showToast('Curso agregado.', 'success');
+                el.formAddCurso.reset();
+                loadCursosPage();
+            };
+            
+            const handleDeleteCurso = (id) => {
+                const cursoId = parseInt(id);
+                UI.showModal({
+                    title: 'Eliminar Curso',
+                    body: '<p>¿Estás seguro? Esto eliminará el curso y <strong>todos sus estudiantes y bitácoras asociadas</strong>.</p>',
+                    footerButtons: [
+                        { text: 'Cancelar', class: 'btn-secondary', handler: UI.hideModal },
+                        { text: 'Eliminar', class: 'btn-danger', handler: async () => {
+                            // TODO: Eliminar en cascada estudiantes, notas, documentos
+                            await DB.del('cursos', cursoId);
+                            UI.showToast('Curso eliminado.', 'success');
+                            loadCursosPage();
+                            UI.hideModal();
+                        }}
+                    ]
+                });
+            };
+            
+            const handleAddEstudiante = async (e) => {
+                e.preventDefault();
+                const nombre = el.estudianteNombreInput.value.trim();
+                const cursoId = parseInt(el.estudianteCursoIdInput.value);
+                if (!nombre || !cursoId) return;
+                
+                await DB.add('estudiantes', { nombre, cursoId, etiquetas: [], observaciones: "" });
+                UI.showToast('Estudiante agregado.', 'success');
+                el.formAddEstudiante.reset();
+                loadEstudiantesPage();
+            };
+            
+            const handleDeleteEstudiante = (id) => {
+                const estudianteId = parseInt(id);
+                 UI.showModal({
+                    title: 'Eliminar Estudiante',
+                    body: '<p>¿Estás seguro? Esto eliminará al estudiante y <strong>toda su bitácora y archivos asociados</strong>.</p>',
+                    footerButtons: [
+                        { text: 'Cancelar', class: 'btn-secondary', handler: UI.hideModal },
+                        { text: 'Eliminar', class: 'btn-danger', handler: async () => {
+                            // TODO: Eliminar en cascada notas, documentos
+                            await DB.del('estudiantes', estudianteId);
+                            UI.showToast('Estudiante eliminado.', 'success');
+                            loadEstudiantesPage();
+                            UI.hideModal();
+                        }}
+                    ]
+                });
+            };
+            
+            const handleAddNota = async (e) => {
+                e.preventDefault();
+                const estudianteId = parseInt(el.notaEstudianteIdInput.value);
+                const texto = el.notaTextoInput.value.trim();
+                const tags = el.notaTagsInput.value.split(',').map(t => t.trim()).filter(Boolean);
+                const files = el.notaArchivosInput.files;
+                
+                if (!texto || !estudianteId) return;
+
+                try {
+                    UI.showToast('Guardando nota...');
+                    
+                    let documentoIds = [];
+                    // Subir archivos a la DB de documentos
+                    if (files.length > 0) {
+                        for (const file of files) {
+                            const doc = {
+                                nombre: file.name,
+                                tipo: file.type,
+                                blob: file, // IndexedDB puede guardar Blobs directamente
+                                fecha: new Date().toISOString(),
+                                estudianteId: estudianteId
+                            };
+                            const docId = await DB.add('documentos', doc);
+                            documentoIds.push(docId);
+                        }
+                    }
+                    
+                    const nota = {
+                        estudianteId,
+                        texto,
+                        tags,
+                        fecha: new Date().toISOString(),
+                        documentoIds: documentoIds
+                    };
+                    
+                    await DB.add('notas', nota);
+                    UI.showToast('Nota guardada.', 'success');
+                    el.formAddNota.reset();
+                    loadBitacoraPage();
+
+                } catch (error) {
+                    console.error("Error al guardar nota:", error);
+                    UI.showToast('Error al guardar la nota.', 'error');
+                }
+            };
+
+            const handleDeleteNota = (id) => {
+                const notaId = parseInt(id);
+                 UI.showModal({
+                    title: 'Eliminar Nota',
+                    body: '<p>¿Estás seguro? Esto eliminará la nota (pero no los archivos adjuntos, que pueden estar en otras notas).</p>',
+                    footerButtons: [
+                        { text: 'Cancelar', class: 'btn-secondary', handler: UI.hideModal },
+                        { text: 'Eliminar', class: 'btn-danger', handler: async () => {
+                            // TODO: Opcionalmente, borrar documentos si no están enlazados en otro lado
+                            await DB.del('notas', notaId);
+                            UI.showToast('Nota eliminada.', 'success');
+                            // Recargar la página actual
+                            if (AppState.currentPage === 'bitacora') {
+                                loadBitacoraPage();
+                            } else if (AppState.currentPage === 'bitacora-list') {
+                                loadBitacoraListPage();
+                            }
+                            UI.hideModal();
+                        }}
+                    ]
+                });
+            };
+
+            const handleDownloadDocumento = async (docId) => {
+                try {
+                    const doc = await DB.get('documentos', docId);
+                    if (!doc || !doc.blob) {
+                        UI.showToast('No se encontró el archivo.', 'error');
+                        return;
+                    }
+                    
+                    const url = URL.createObjectURL(doc.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = doc.nombre;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    console.error("Error al descargar archivo:", error);
+                    UI.showToast('Error al descargar archivo.', 'error');
+                }
+            };
+            
+            const showCalendarioModal = (date) => {
+                // Filtrar eventos para ese día
+                const dayStart = new Date(date.getTime());
+                dayStart.setHours(0, 0, 0, 0);
+                const dayEnd = new Date(date.getTime());
+                dayEnd.setHours(23, 59, 59, 999);
+
+                const dayEvents = calEventos.filter(e => {
+                    const eDate = new Date(e.fechaInicio);
+                    return eDate >= dayStart && eDate <= dayEnd;
+                });
+                
+                UI.renderCalendarioEventosDia(date, dayEvents);
+                
+                // Formatear la fecha para el input
+                const isoDate = date.toISOString().substring(0, 10);
+                const isoTime = date.toTimeString().substring(0, 5);
+
+                UI.showModal({
+                    title: `Agregar Evento - ${date.toLocaleDateString('es-ES', { day:'numeric', month: 'long' })}`,
+                    body: `
+                        <form id="form-add-evento">
+                            <div class="form-group">
+                                <label for="evento-titulo">Título</label>
+                                <input type="text" id="evento-titulo" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="evento-fecha">Fecha</label>
+                                <input type="date" id="evento-fecha" class="form-control" value="${isoDate}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="evento-hora">Hora</label>
+                                <input type="time" id="evento-hora" class="form-control" value="${isoTime}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="evento-desc">Descripción</label>
+                                <textarea id="evento-desc" class="form-control"></textarea>
+                            </div>
+                        </form>
+                    `,
+                    footerButtons: [
+                        { text: 'Cancelar', class: 'btn-secondary', handler: UI.hideModal },
+                        { text: 'Guardar', class: 'btn-primary', handler: handleAddEvento }
+                    ]
+                });
+            };
+            
+            const handleAddEvento = async () => {
+                const titulo = document.getElementById('evento-titulo').value.trim();
+                const fecha = document.getElementById('evento-fecha').value;
+                const hora = document.getElementById('evento-hora').value;
+                const descripcion = document.getElementById('evento-desc').value.trim();
+                
+                if (!titulo || !fecha || !hora) {
+                    UI.showToast('Título, fecha y hora son obligatorios.', 'error');
+                    return;
+                }
+                
+                const fechaInicio = new Date(`${fecha}T${hora}`);
+                
+                await DB.add('eventos', {
+                    titulo,
+                    fechaInicio: fechaInicio.toISOString(),
+                    descripcion
+                });
+                
+                UI.showToast('Evento guardado.', 'success');
+                UI.hideModal();
+                loadCalendarioPage(); // Recargar calendario
+            };
+            
+            const handleDeleteEvento = (id) => {
+                const eventoId = parseInt(id);
+                UI.showModal({
+                    title: 'Eliminar Evento',
+                    body: '<p>¿Estás seguro de que quieres eliminar este evento?</p>',
+                    footerButtons: [
+                        { text: 'Cancelar', class: 'btn-secondary', handler: UI.hideModal },
+                        { text: 'Eliminar', class: 'btn-danger', handler: async () => {
+                            await DB.del('eventos', eventoId);
+                            UI.showToast('Evento eliminado.', 'success');
+                            loadCalendarioPage();
+                            UI.hideModal();
+                        }}
+                    ]
+                });
+            };
+            
+            const handleDeleteAllData = () => {
+                 UI.showModal({
+                    title: '¡ADVERTENCIA!',
+                    body: `
+                        <p>Estás a punto de <strong>eliminar permanentemente TODOS los datos</strong> de PsicoAgenda en este dispositivo.</p>
+                        <p>Esta acción no se puede deshacer.</p>
+                        <p>Asegúrate de tener una <strong>copia de seguridad (exportación)</strong> reciente si deseas conservar tus datos.</p>
+                        <p>Escribe <strong>ELIMINAR</strong> para confirmar:</p>
+                        <input type="text" id="delete-confirm-input" class="form-control" placeholder="ELIMINAR">
+                    `,
+                    footerButtons: [
+                        { text: 'Cancelar', class: 'btn-secondary', handler: UI.hideModal },
+                        { text: 'Eliminar Todo', class: 'btn-danger', handler: async () => {
+                            const confirmText = document.getElementById('delete-confirm-input').value;
+                            if (confirmText !== 'ELIMINAR') {
+                                UI.showToast('Confirmación incorrecta.', 'error');
+                                return;
+                            }
+                            
+                            await DB.deleteAllData();
+                            UI.showToast('Todos los datos han sido eliminados.', 'success');
+                            UI.hideModal();
+                            loadDashboardPage(); // Recargar la app
+                        }}
+                    ]
+                });
+            };
+
+            return {
+                init,
+                loadDashboardPage,
+                loadCursosPage,
+                loadEstudiantesPage,
+                loadBitacoraPage,
+                loadCalendarioPage,
+                loadDocumentosPage,
+                loadBitacoraListPage,
+                loadEvaluacionesPage,
+                downloadDocumento,
+                getUserName,
+                saveUserName
+            };
+        })();
+        
+        // Iniciar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', App.init);
+
+    })();
+    </script>
+</body>
+</html>

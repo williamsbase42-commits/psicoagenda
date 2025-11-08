@@ -1,0 +1,30 @@
+{
+    "name": "PsicoAgenda",
+    "short_name": "PsicoAgenda",
+    "description": "Gestor local para psicólogos y psicopedagogos escolares.",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#F8FAFC",
+    "theme_color": "#6366F1",
+    "orientation": "portrait-primary",
+    "icons": [
+      {
+        "src": "https://placehold.co/192x192/87CEEB/FFFFFF?text=P.A",
+        "type": "image/png",
+        "sizes": "192x192",
+        "purpose": "any"
+      },
+      {
+        "src": "https://placehold.co/512x512/87CEEB/FFFFFF?text=P.A",
+        "type": "image/png",
+        "sizes": "512x512",
+        "purpose": "any"
+      },
+      {
+        "src": "https://placehold.co/512x512/87CEEB/FFFFFF?text=P.A",
+        "type": "image/png",
+        "sizes": "512x512",
+        "purpose": "maskable"
+      }
+    ]
+  }
