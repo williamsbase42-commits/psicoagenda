@@ -1,4 +1,4 @@
-const CACHE_NAME = 'psicoagenda-v1';
+const CACHE_NAME = 'psicoagenda-v2';
 // Archivos esenciales del "App Shell"
 const FILES_TO_CACHE = [
   'index.html',
@@ -38,16 +38,40 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim(); // Tomar control inmediato de las páginas
 });
 
-// 3. Interceptación de peticiones (Fetch): Estrategia Cache-First (Offline-First)
+// 3. Interceptación de peticiones (Fetch): Estrategia Network-First para HTML, Cache-First para el resto
 self.addEventListener('fetch', (event) => {
   // Solo manejar peticiones GET
   if (event.request.method !== 'GET') {
     return;
   }
+
+  const url = new URL(event.request.url);
   
-  // Estrategia: Cache-First
-  // 1. Intenta responder desde el caché.
-  // 2. Si no está en caché, intenta ir a la red (fetch).
+  // Estrategia Network-First para archivos HTML
+  if (event.request.headers.get('accept').includes('text/html') || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Si la respuesta es válida, la guardamos en caché
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Si falla la red, intentamos responder desde caché
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // Estrategia Cache-First para otros recursos
+  // 1. Intenta responder desde el caché
+  // 2. Si no está en caché, intenta ir a la red (fetch)
   // 3. (Opcional) Si la petición de red tiene éxito, se puede cachear la respuesta.
   
   event.respondWith(
