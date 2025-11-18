@@ -1,104 +1,77 @@
-const CACHE_NAME = 'psicoagenda-v2';
-// Archivos esenciales del "App Shell"
+const CACHE_NAME = "psicoagenda-v4";
 const FILES_TO_CACHE = [
-  'index.html',
-  'manifest.json'
-  // Nota: CSS y JS están integrados en index.html, por lo que no se listan aquí.
-  // Los iconos se cargan desde una URL externa (placeholder), por lo que no se cachean aquí.
+  "/",
+  "index.html",
+  "manifest.json"
 ];
 
-// 1. Instalación del Service Worker: Cachear los archivos del App Shell
-self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Instalando...');
+// Instalar — cachea App Shell
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[ServiceWorker] Cacheando archivos del App Shell');
-        return cache.addAll(FILES_TO_CACHE);
-      })
-      .then(() => {
-        self.skipWaiting(); // Forzar la activación inmediata
-      })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
+  );
+  self.skipWaiting();
+});
+
+// Activar — borra caches antiguas
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
-// 2. Activación del Service Worker: Limpiar cachés antiguos
-self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activando...');
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
-          console.log('[ServiceWorker] Eliminando caché antiguo:', key);
-          return caches.delete(key);
-        }
-      }));
-    })
-  );
-  return self.clients.claim(); // Tomar control inmediato de las páginas
-});
+// Interceptar peticiones
+self.addEventListener("fetch", event => {
+  const request = event.request;
 
-// 3. Interceptación de peticiones (Fetch): Estrategia Network-First para HTML, Cache-First para el resto
-self.addEventListener('fetch', (event) => {
-  // Solo manejar peticiones GET
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  // Solo GET
+  if (request.method !== "GET") return;
 
-  const url = new URL(event.request.url);
-  
-  // Estrategia Network-First para archivos HTML
-  if (event.request.headers.get('accept').includes('text/html') || url.pathname.endsWith('.html')) {
+  const url = new URL(request.url);
+
+  // ► 1. Navegaciones (SPA) — Network First con fallback a cache
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then(response => {
-          // Si la respuesta es válida, la guardamos en caché
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseClone);
-            });
-          }
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put("index.html", clone));
           return response;
         })
-        .catch(() => {
-          // Si falla la red, intentamos responder desde caché
-          return caches.match(event.request);
-        })
+        .catch(() => caches.match("index.html"))
     );
     return;
   }
-  
-  // Estrategia Cache-First para otros recursos
-  // 1. Intenta responder desde el caché
-  // 2. Si no está en caché, intenta ir a la red (fetch)
-  // 3. (Opcional) Si la petición de red tiene éxito, se puede cachear la respuesta.
-  
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          // 1. Encontrado en caché
-          // console.log(`[ServiceWorker] Sirviendo desde caché: ${event.request.url}`);
+
+  // ► 2. HTML directo (index.html, etc.)
+  if (url.pathname.endsWith(".html")) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
           return response;
-        }
-        
-        // 2. No está en caché, ir a la red
-        // console.log(`[ServiceWorker] Sirviendo desde red: ${event.request.url}`);
-        return fetch(event.request)
-          .then((networkResponse) => {
-            
-            // (Opcional) Si queremos cachear nuevas peticiones dinámicamente
-            // Hay que tener cuidado de no cachear todo (ej. APIs externas)
-            // Por ahora, solo nos importa el App Shell, que ya está en el 'install'.
-            
-            return networkResponse;
-          })
-          .catch(() => {
-            // Error al ir a la red (offline y no está en caché)
-            // Aquí podríamos devolver una página "offline.html" genérica si la tuviéramos
-            console.warn(`[ServiceWorker] Fallo al cargar: ${event.request.url}`);
-          });
-      })
+        })
+        .catch(() => caches.match(request).then(r => r || caches.match("index.html")))
+    );
+    return;
+  }
+
+  // ► 3. Otros archivos — Cache First
+  event.respondWith(
+    caches.match(request).then(cacheRes => {
+      return (
+        cacheRes ||
+        fetch(request)
+          .then(response => response)
+          .catch(() => undefined)
+      );
+    })
   );
 });
