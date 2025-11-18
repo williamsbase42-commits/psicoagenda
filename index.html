@@ -864,6 +864,22 @@
             animation: pulse 2s infinite;
             box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
         }
+
+        /* Chile holidays color override: make holidays visually distinct (Chilean red) */
+        .cal-day.holiday {
+            border-color: #c62828; /* Chile-style red */
+            background: linear-gradient(135deg, rgba(198,40,40,0.08) 0%, var(--white) 100%);
+        }
+
+        .cal-day.holiday span {
+            color: #8b0000; /* darker red for the date number */
+            font-weight: 700;
+        }
+
+        .cal-day .holiday-badge {
+            background: #c62828 !important;
+            box-shadow: none;
+        }
         
         @keyframes pulse {
             0% {
@@ -1038,6 +1054,42 @@
         
         #modal-close-btn:hover, .btn-close:hover {
             color: var(--text-color);
+        }
+
+        /* Responsive adjustments specifically for modals with more controls (historial) */
+        @media (max-width: 600px) {
+            .modal-dialog {
+                width: 96%;
+                max-width: 96%;
+                margin: 0 auto;
+            }
+
+            .modal-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+                padding: 0.75rem;
+            }
+
+            /* The right-side controls in the historial header should wrap and redistribute space */
+            .modal-header > div[style*="display:flex"] {
+                display: flex !important;
+                flex-wrap: wrap;
+                gap: 0.25rem;
+                justify-content: center;
+            }
+
+            #historial-month-label {
+                min-width: auto !important;
+                text-align: center;
+                flex: 1 1 auto;
+                padding: 0.25rem 0.5rem;
+            }
+
+            .btn.btn-icon, .btn-close {
+                padding: 0.35rem 0.5rem;
+                font-size: 0.95rem;
+            }
         }
 
         .modal-body {
@@ -1318,12 +1370,9 @@
         <div id="app-header-top">
             <h1 id="header-title">PsicoAgenda</h1>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <!-- Botón de perfil -->
-                <button id="profile-btn" style="background: var(--primary-light); border: none; border-radius: 12px; padding: 0.75rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transform-origin: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s ease">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
+                <!-- Botón de perfil (muestra foto) -->
+                <button id="profile-btn" style="background: transparent; border: none; border-radius: 12px; padding: 0.25rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: none; transform-origin: center;">
+                    <img id="header-profile-img" src="https://placehold.co/120x120/6366f1/FFFFFF?text=Foto" alt="Perfil" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light);">
                 </button>
                 <!-- Botón de configuración -->
                 <button id="settings-btn" style="background: var(--primary-light); border: none; border-radius: 12px; padding: 0.75rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transform-origin: center;">
@@ -1376,10 +1425,17 @@
             <!-- Modal Historial de Actividades -->
             <div id="historial-actividades-modal" class="modal-backdrop hidden">
                 <div class="modal-dialog" style="max-width: 520px;">
-                    <div class="modal-header">
-                        <h3 class="modal-title">Historial de Actividades</h3>
-                        <button id="historial-actividades-close" class="btn-close">&times;</button>
-                    </div>
+                    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+                                <div style="display:flex;flex-direction:column;">
+                                    <h3 class="modal-title" style="margin:0;">Historial de Actividades</h3>
+                                    <small style="color:var(--text-light);">Filtrar por mes</small>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                    <button id="historial-prev-month" class="btn btn-icon" title="Mes anterior">◀</button>
+                                    <div id="historial-month-label" style="min-width:140px;text-align:center;font-weight:600;">Mes</div>
+                                    <button id="historial-next-month" class="btn btn-icon" title="Mes siguiente">▶</button>
+                                </div>
+                            </div>
                     <div class="modal-body" id="historial-actividades-body">
                         <p style="color:var(--text-light);">Actividades terminadas (hoy)</p>
                         <ul id="historial-actividades-list" class="list-group"></ul>
@@ -1412,7 +1468,10 @@
             <p class="page-subtitle" id="dashboard-date">Cargando fecha...</p>
             
             <div class="card">
-                <h3 class="card-title">Eventos de Hoy</h3>
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <h3 class="card-title" style="margin:0;">Eventos de Hoy</h3>
+                    <button id="ver-historial-actividades" class="btn btn-secondary" title="Ver historial de actividades completadas">Historial</button>
+                </div>
                 <div id="dashboard-eventos">
                     <p>No hay eventos para hoy.</p>
                 </div>
@@ -1541,7 +1600,7 @@
                     <button id="cal-next" class="btn btn-secondary">&gt;</button>
                 </div>
                 <div id="cal-days">
-                    <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
                 </div>
                 <div id="cal-grid">
                     <!-- Los días se generarán aquí -->
@@ -2382,22 +2441,21 @@
                 const actividades = todayEvents.filter(e => e.tipo === 'actividad');
                 const otros = todayEvents.filter(e => e.tipo !== 'actividad');
 
-                // Contenido principal: actividades + otros eventos
+                const actividadesPending = actividades.filter(a => !a.completed);
+                const actividadesCompleted = actividades.filter(a => a.completed);
+
+                // Contenido principal: mostraremos completadas (compacto), luego los 'otros' eventos,
+                // y más abajo un bloque de "Urgencia" con las actividades pendientes.
                 let content = '';
 
-                if (actividades.length > 0) {
-                    // Listar actividades directamente dentro del área de "Eventos de Hoy"
-                    content += actividades.map((act, idx) => `
-                        <div class="actividad-item${act.urgente ? ' urgent' : ''}" data-id="${act.id}" style="animation: slideInRight 0.35s ease ${idx * 0.05}s both;">
-                            <div class="actividad-info">
-                                <div style="display:flex;align-items:center;gap:0.5rem;">
-                                    <div class="actividad-title">${act.titulo}</div>
-                                    ${act.urgente ? `<span class="badge-urgent">Urgente</span>` : ''}
-                                </div>
-                                <div class="actividad-meta">🕐 ${new Date(act.fechaInicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ${act.descripcion ? `• ${act.descripcion}` : ''}</div>
-                            </div>
-                            <div class="actividad-actions${act.urgente ? ' urgent' : ''}">
-                                ${act.completed ? `<span style="color:var(--text-light); font-weight:600;">Completada</span>` : `<button class="btn-terminar" data-id="${act.id}">Terminar</button>`}
+                if (actividadesCompleted.length > 0) {
+                    // Mostrar completadas (compacto)
+                    content += `<div style="margin-bottom:0.5rem;"><strong style="font-weight:600; color:var(--text-light);">Completadas (hoy)</strong></div>`;
+                    content += actividadesCompleted.map((act, idx) => `
+                        <div class="actividad-item actividad-completada" style="opacity:0.85;padding:0.5rem 0;border-bottom:1px dashed rgba(0,0,0,0.06);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">
+                                <div style="font-size:0.95rem;color:var(--text-light);">${new Date(act.completedAt).toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'})} — ${act.titulo}</div>
+                                <div style="font-size:0.85rem;color:var(--text-light);">Completada</div>
                             </div>
                         </div>
                     `).join('');
@@ -2424,6 +2482,24 @@
                     `).join('');
                 }
 
+                if (actividadesPending.length > 0) {
+                    content += `<div style="margin-top:1rem;padding-top:0.5rem;border-top:1px dashed rgba(0,0,0,0.06);"><strong style="color:var(--danger);">Urgencia — Aún no se terminan estos eventos</strong></div>`;
+                    content += actividadesPending.map((act, idx) => `
+                        <div class="actividad-item${act.urgente ? ' urgent' : ''}" data-id="${act.id}" style="animation: slideInRight 0.35s ease ${idx * 0.05}s both; margin-top:0.5rem;">
+                            <div class="actividad-info">
+                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                    <div class="actividad-title">${act.titulo}</div>
+                                    ${act.urgente ? `<span class="badge-urgent">Urgente</span>` : ''}
+                                </div>
+                                <div class="actividad-meta">🕐 ${new Date(act.fechaInicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ${act.descripcion ? `• ${act.descripcion}` : ''}</div>
+                            </div>
+                            <div class="actividad-actions${act.urgente ? ' urgent' : ''}">
+                                <button class="btn-terminar" data-id="${act.id}">Terminar</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
                 if (!content) {
                     content = `
                         <div style="text-align: center; padding: 2rem; color: var(--text-light);">
@@ -2436,22 +2512,38 @@
                 // add 'Ver próximos' button above the events list
                 const verProximosBtnHtml = `<div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;"><button id="ver-proximos-eventos" class="btn btn-secondary">Ver próximos</button></div>`;
                 elements.dashboardEventos.innerHTML = verProximosBtnHtml + content;
+
                 // Delegated listeners for historial button and terminar buttons
                 const historialBtn = document.getElementById('ver-historial-actividades');
                 if (historialBtn) {
-                    historialBtn.addEventListener('click', async () => {
-                        // cargar actividades completadas hoy
-                        const all = await DB.getAll('eventos');
-                        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-                        const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
-                        const completedToday = all.filter(a => a.tipo === 'actividad' && a.completed && new Date(a.completedAt) >= todayStart && new Date(a.completedAt) <= todayEnd);
-                        const listEl = document.getElementById('historial-actividades-list');
-                        if (listEl) {
-                            listEl.innerHTML = completedToday.length === 0 ? '<li class="list-group-item">No hay actividades completadas hoy.</li>' : completedToday.map(a => `<li class="list-group-item">${new Date(a.completedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} — ${a.titulo}</li>`).join('');
-                        }
+                    historialBtn.onclick = async () => {
                         const modal = document.getElementById('historial-actividades-modal');
+                        const listEl = document.getElementById('historial-actividades-list');
+                        const monthLabel = document.getElementById('historial-month-label');
+                        const prevBtn = document.getElementById('historial-prev-month');
+                        const nextBtn = document.getElementById('historial-next-month');
+
+                        let current = new Date(); // start with current month
+
+                        const loadForMonth = async (date) => {
+                            const all = await DB.getAll('eventos');
+                            const start = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
+                            const end = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+                            const completed = all.filter(a => a.tipo === 'actividad' && a.completed && new Date(a.completedAt) >= start && new Date(a.completedAt) <= end).sort((a,b) => new Date(b.completedAt) - new Date(a.completedAt));
+                            if (monthLabel) monthLabel.innerText = start.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                            if (listEl) {
+                                listEl.innerHTML = completed.length === 0 ? '<li class="list-group-item">No hay actividades completadas en este mes.</li>' : completed.map(a => `<li class="list-group-item">${new Date(a.completedAt).toLocaleDateString('es-ES')} ${new Date(a.completedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} — ${a.titulo}</li>`).join('');
+                            }
+                        };
+
+                        // wire prev/next
+                        if (prevBtn) prevBtn.onclick = () => { current.setMonth(current.getMonth() - 1); loadForMonth(current); };
+                        if (nextBtn) nextBtn.onclick = () => { current.setMonth(current.getMonth() + 1); loadForMonth(current); };
+
+                        // open modal and load current month
                         if (modal) modal.classList.remove('hidden');
-                    });
+                        await loadForMonth(current);
+                    };
                 }
 
                 // handler for 'Ver próximos' button: show upcoming events (future fechaInicio)
@@ -2586,7 +2678,9 @@
                 const month = currentDate.getMonth();
                 const year = currentDate.getFullYear();
                 
-                const firstDay = new Date(year, month, 1).getDay();
+                // Calculate first day index adjusted so week starts on Monday (0 = Monday)
+                const firstDayRaw = new Date(year, month, 1).getDay(); // 0 (Sun) - 6 (Sat)
+                const firstDay = (firstDayRaw + 6) % 7; // shift so Monday=0, Sunday=6
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 const today = new Date();
 
@@ -2618,11 +2712,30 @@
                         const eDate = new Date(e.fechaInicio);
                         return eDate.getDate() === i && eDate.getMonth() === month && eDate.getFullYear() === year;
                     });
-                    
+
                     if (dayEvents.length > 0) {
                         const dot = document.createElement('div');
                         dot.className = 'event-dot';
                         dayEl.appendChild(dot);
+                    }
+
+                    // Mark stored holidays (from localStorage) or Sundays as holidays
+                    const isoDate = dayDate.toISOString().substring(0,10);
+                    const storedHoliday = (typeof isHolidayStored === 'function') ? isHolidayStored(isoDate) : null;
+                    if (storedHoliday) {
+                        dayEl.classList.add('holiday');
+                        const badge = document.createElement('div');
+                        badge.className = 'holiday-badge';
+                        dayEl.appendChild(badge);
+                        const prevTitle = dayEl.getAttribute('title') || '';
+                        dayEl.setAttribute('title', (prevTitle ? prevTitle + ' — ' : '') + (storedHoliday.label || 'Feriado'));
+                    } else if (dayDate.getDay() === 0) {
+                        dayEl.classList.add('holiday');
+                        const badge = document.createElement('div');
+                        badge.className = 'holiday-badge';
+                        dayEl.appendChild(badge);
+                        const prevTitle = dayEl.getAttribute('title') || '';
+                        dayEl.setAttribute('title', (prevTitle ? prevTitle + ' — ' : '') + 'Domingo (feriado)');
                     }
                     
                     elements.calGrid.appendChild(dayEl);
@@ -2631,7 +2744,16 @@
             
             const renderCalendarioEventosDia = (date, eventos) => {
                 elements.calEventosDia.classList.remove('hidden');
-                elements.calEventosTitle.innerText = `Eventos para ${date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}`;
+                const isoDate = date.toISOString().substring(0,10);
+                // Guardar la fecha seleccionada en el contenedor para que el botón + la use
+                elements.calEventosDia.dataset.date = isoDate;
+                // Mostrar título + botón para agregar actividad
+                elements.calEventosTitle.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                        <span>Eventos para ${date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</span>
+                        <button id="cal-add-actividad" class="btn btn-primary btn-sm" title="Agregar actividad para ${isoDate}">+</button>
+                    </div>
+                `;
                 
                 if (eventos.length === 0) {
                     elements.calEventosList.innerHTML = '<li class="list-group-item">No hay eventos</li>';
@@ -3009,6 +3131,27 @@
                         return;
                     }
 
+                    // Botón + dentro del panel de eventos del calendario
+                    const calAddBtn = e.target.closest('#cal-add-actividad');
+                    if (calAddBtn) {
+                        e.stopPropagation();
+                        const calDia = document.getElementById('cal-eventos-dia');
+                        const isoDate = calDia?.dataset?.date || new Date().toISOString().substring(0,10);
+                        const addActividadModal = document.getElementById('add-actividad-modal');
+                        const actividadFecha = document.getElementById('actividad-fecha-dashboard');
+                        const actividadHora = document.getElementById('actividad-hora-dashboard');
+                        const actividadTitulo = document.getElementById('actividad-titulo-dashboard');
+                        if (actividadFecha) actividadFecha.value = isoDate;
+                        // Poner hora por defecto a la hora actual (HH:MM)
+                        if (actividadHora) actividadHora.value = new Date().toTimeString().substring(0,5);
+                        if (addActividadModal) {
+                            addActividadModal.classList.remove('hidden');
+                            document.body.classList.add('has-active-modal');
+                        }
+                        if (actividadTitulo) actividadTitulo.focus();
+                        return;
+                    }
+
                     const addActividadBtn = e.target.closest('#fab-add-actividad');
                     if (addActividadBtn) {
                         const fabMenu = document.getElementById('fab-menu');
@@ -3099,42 +3242,147 @@
 
                 // Configuración de perfil
                 const setupProfileEvents = () => {
-                    const { 
-                        profileBtn, profileModal, profileModalClose, profileModalCancel,
-                        profileForm, profileFormSubmit, profileName, profileImage, 
-                        profileImageInput, profileImageContainer 
-                    } = el;
+                    // Consultar elementos dinámicamente (el modal está después del script en el HTML)
+                    const profileBtn = document.getElementById('profile-btn');
+                    const profileModal = document.getElementById('profile-modal');
+                    const profileModalClose = document.getElementById('profile-modal-close');
+                    const profileModalCancel = document.getElementById('profile-modal-cancel');
+                    const profileForm = document.getElementById('profile-form');
+                    const profileFormSubmit = document.getElementById('profile-form-submit');
+                    const profileName = document.getElementById('profile-name');
+                    const profileDesc = document.getElementById('profile-desc');
+                    const profileImage = document.getElementById('profile-image');
+                    const profileImageInput = document.getElementById('profile-image-input');
+                    const profileImageContainer = document.getElementById('profile-image-container');
+                    const profileDeleteBtn = document.getElementById('profile-delete-photo');
+                    const headerProfileImg = document.getElementById('header-profile-img');
 
                     if (!profileBtn || !profileModal) return;
 
-                    // Click en botón de perfil
-                    profileBtn.addEventListener('click', () => {
+                    const placeholder = 'https://placehold.co/120x120/6366f1/FFFFFF?text=Foto';
+
+                    // Variables temporales durante la edición del modal
+                    let originalImage = null;
+                    let originalName = null;
+                    let originalDesc = null;
+                    let imageRemoved = false; // usuario pulsó eliminar (temporal hasta guardar)
+                    let newImageSelected = false; // usuario seleccionó una nueva imagen
+                    let newImageData = null; // dataURL de la nueva imagen seleccionada
+
+                    const openProfileModal = () => {
+
+                        // Leer estado persistente al abrir el modal
+                        originalImage = null;
+                        originalName = null;
+                        originalDesc = null;
+                        try { originalImage = localStorage.getItem('psicoagenda_userImage'); } catch (err) { /* ignore */ }
+                        try { originalName = localStorage.getItem('psicoagenda_userName'); } catch (err) { /* ignore */ }
+                        try { originalDesc = localStorage.getItem('psicoagenda_userDesc'); } catch (err) { /* ignore */ }
+
+                        imageRemoved = false;
+                        newImageSelected = false;
+                        newImageData = null;
+
                         profileModal.classList.remove('hidden');
-                        if (profileName) {
-                            profileName.value = localStorage.getItem('psicoagenda_userName') || '';
-                        }
-                        if (profileImage) {
-                            profileImage.src = localStorage.getItem('psicoagenda_userImage') || 'https://placehold.co/120x120/6366f1/FFFFFF?text=Foto';
-                        }
+                        if (profileName) profileName.value = originalName || '';
+                        if (profileDesc) profileDesc.value = originalDesc || '';
+
+                        const savedImage = originalImage || '';
+                        if (profileImage) profileImage.src = savedImage || placeholder;
+                        if (headerProfileImg) headerProfileImg.src = savedImage || placeholder;
+
+                        // actualizar tooltip/title con nombre y descripción
+                        try {
+                            const n = localStorage.getItem('psicoagenda_userName') || '';
+                            const d = localStorage.getItem('psicoagenda_userDesc') || '';
+                            if (headerProfileImg) headerProfileImg.title = n + (d ? (' - ' + d) : '');
+                        } catch (err) {}
+
+                        document.body.classList.add('has-active-modal');
+                    };
+
+                    const closeProfileModal = () => {
+                        // Al cerrar sin guardar, revertir cambios temporales
+                        if (profileImage) profileImage.src = originalImage || placeholder;
+                        if (headerProfileImg) headerProfileImg.src = originalImage || placeholder;
+                        imageRemoved = false;
+                        newImageSelected = false;
+                        newImageData = null;
+
+                        // Restaurar nombre temporal en dashboard al original
+                        try {
+                            const dashTitle = UI.elements.dashboardTitle;
+                            if (dashTitle) {
+                                const now = new Date();
+                                // Recompute greeting similar to UI.renderDashboard
+                                const hour = now.getHours();
+                                let greet = '¡Hola!';
+                                if (hour < 12) greet = 'Buenos días';
+                                else if (hour < 19) greet = 'Buenas tardes';
+                                else greet = 'Buenas noches';
+                                if (originalName) dashTitle.innerText = `¡Hola ${originalName}!`;
+                                else dashTitle.innerText = `¡Hola! ${greet}`;
+                            }
+                        } catch (err) { /* ignore */ }
+
+                        profileModal.classList.add('hidden');
+                        // Remover la clase de body si no quedan modales abiertos
+                        if (!document.querySelector('.modal-backdrop:not(.hidden)')) document.body.classList.remove('has-active-modal');
+                    };
+
+                    // Abrir modal al hacer click en el botón de perfil
+                    profileBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openProfileModal();
                     });
 
-                    // Cerrar modal
-                    profileModalClose?.addEventListener('click', () => profileModal.classList.add('hidden'));
-                    profileModalCancel?.addEventListener('click', () => profileModal.classList.add('hidden'));
+                    // Cerrar modal con la X y con Cancelar
+                    profileModalClose && profileModalClose.addEventListener('click', (e) => { e.stopPropagation(); closeProfileModal(); });
+                    profileModalCancel && profileModalCancel.addEventListener('click', (e) => { e.stopPropagation(); closeProfileModal(); });
 
-                    // Subir imagen
+                    // Click en la imagen abre el file picker
                     if (profileImageContainer && profileImageInput) {
                         profileImageContainer.addEventListener('click', () => profileImageInput.click());
-                        
+
                         profileImageInput.addEventListener('change', (e) => {
-                            const file = e.target.files?.[0];
-                            if (file && profileImage) {
+                            const file = e.target.files && e.target.files[0];
+                            if (file) {
                                 const reader = new FileReader();
-                                reader.onload = (e) => {
-                                    const result = e.target?.result;
+                                reader.onload = (ev) => {
+                                    const result = ev.target && ev.target.result;
                                     if (result) {
-                                        profileImage.src = result.toString();
-                                        localStorage.setItem('psicoagenda_userImage', result.toString());
+                                                        // No persistir inmediatamente: manejar como cambio temporal hasta guardar
+                                                        newImageSelected = true;
+                                                        imageRemoved = false; // si eligió nueva imagen, anular eliminación previa
+                                                        newImageData = result.toString();
+
+                                                        if (profileImage) profileImage.src = newImageData;
+                                                        if (headerProfileImg) headerProfileImg.src = newImageData;
+
+                                                        // actualizar tooltip/title con nombre y descripción (temporales mientras se edita el nombre)
+                                                        try {
+                                                            const currentName = profileName && profileName.value ? profileName.value.trim() : (originalName || '');
+                                                            const currentDesc = profileDesc && profileDesc.value ? profileDesc.value.trim() : (originalDesc || '');
+                                                            if (headerProfileImg) headerProfileImg.title = currentName + (currentDesc ? (' - ' + currentDesc) : '');
+                                                        } catch (err) {}
+
+                                                        // También actualizar saludo del dashboard temporalmente si existe
+                                                        try {
+                                                            const dashTitle = UI.elements.dashboardTitle;
+                                                            if (dashTitle) {
+                                                                const nameForGreeting = profileName && profileName.value ? profileName.value.trim() : (originalName || '');
+                                                                if (nameForGreeting) dashTitle.innerText = `¡Hola ${nameForGreeting}!`;
+                                                                else {
+                                                                    const now = new Date();
+                                                                    const hour = now.getHours();
+                                                                    let greet = '¡Hola!';
+                                                                    if (hour < 12) greet = 'Buenos días';
+                                                                    else if (hour < 19) greet = 'Buenas tardes';
+                                                                    else greet = 'Buenas noches';
+                                                                    dashTitle.innerText = `¡Hola! ${greet}`;
+                                                                }
+                                                            }
+                                                        } catch (err) {}
                                     }
                                 };
                                 reader.readAsDataURL(file);
@@ -3142,29 +3390,182 @@
                         });
                     }
 
-                    // Guardar cambios (reutilizable y ligado también al botón fuera del <form>)
+                    // Eliminar foto (temporal hasta guardar)
+                    if (profileDeleteBtn) {
+                        profileDeleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Marcar eliminación temporal: no borrar aún de localStorage
+                            imageRemoved = true;
+                            newImageSelected = false;
+                            newImageData = null;
+                            if (profileImage) profileImage.src = placeholder;
+                            if (headerProfileImg) headerProfileImg.src = placeholder;
+                            UI.showToast('Foto marcada para eliminar. Guarda los cambios para confirmar.', 'warning');
+                        });
+                    }
+
+                    // Actualizar saludo del dashboard en tiempo real mientras escribe el nombre
+                    if (profileName) {
+                        profileName.addEventListener('input', (e) => {
+                            const val = profileName.value.trim();
+                            try {
+                                const dashTitle = UI.elements.dashboardTitle;
+                                if (dashTitle) {
+                                    if (val) dashTitle.innerText = `¡Hola ${val}!`;
+                                    else {
+                                        const now = new Date();
+                                        const hour = now.getHours();
+                                        let greet = '¡Hola!';
+                                        if (hour < 12) greet = 'Buenos días';
+                                        else if (hour < 19) greet = 'Buenas tardes';
+                                        else greet = 'Buenas noches';
+                                        dashTitle.innerText = `¡Hola! ${greet}`;
+                                    }
+                                }
+
+                                // actualizar tooltip/title del header con nombre y descripción temporales
+                                const currentDesc = profileDesc && profileDesc.value ? profileDesc.value.trim() : (originalDesc || '');
+                                if (headerProfileImg) headerProfileImg.title = (val || originalName || '') + (currentDesc ? (' - ' + currentDesc) : '');
+                            } catch (err) {}
+                        });
+                    }
+
+                    // Actualizar tooltip/title del header en tiempo real cuando cambia la descripción
+                    if (profileDesc) {
+                        profileDesc.addEventListener('input', () => {
+                            try {
+                                const val = profileName && profileName.value ? profileName.value.trim() : (originalName || '');
+                                const descVal = profileDesc.value ? profileDesc.value.trim() : (originalDesc || '');
+                                if (headerProfileImg) headerProfileImg.title = (val || '') + (descVal ? (' - ' + descVal) : '');
+                            } catch (err) {}
+                        });
+                    }
+
+                    // Guardar cambios de perfil (nombre + descripción)
                     const saveProfile = (e) => {
                         if (e && e.preventDefault) e.preventDefault();
-                        const name = profileName?.value?.trim();
+                        const name = profileName && profileName.value ? profileName.value.trim() : '';
+                        const desc = profileDesc && profileDesc.value ? profileDesc.value.trim() : '';
                         if (name) {
-                            localStorage.setItem('psicoagenda_userName', name);
-                            // La imagen ya se guarda al seleccionar el archivo (FileReader)
-                            if (profileModal) profileModal.classList.add('hidden');
-                            // Refrescar dashboard y mostrar toast mediante la API UI
-                            if (typeof loadDashboardPage === 'function') loadDashboardPage();
+                            try {
+                                localStorage.setItem('psicoagenda_userName', name);
+                                localStorage.setItem('psicoagenda_userDesc', desc);
+                                // Aplicar cambios de imagen según estado temporal
+                                if (newImageSelected && newImageData) {
+                                    localStorage.setItem('psicoagenda_userImage', newImageData);
+                                } else if (imageRemoved) {
+                                    localStorage.removeItem('psicoagenda_userImage');
+                                }
+                            } catch (err) {
+                                console.warn('No se pudo guardar en localStorage:', err);
+                            }
+
+                            // Actualizar UI y cerrar modal
+                            const finalImage = (newImageSelected && newImageData) ? newImageData : (imageRemoved ? '' : originalImage);
+                            if (headerProfileImg) headerProfileImg.src = finalImage || placeholder;
+                            if (profileImage) profileImage.src = finalImage || placeholder;
+
+                            // actualizar tooltip/title del header
+                            try {
+                                if (headerProfileImg) headerProfileImg.title = name + (desc ? (' - ' + desc) : '');
+                            } catch (err) {}
+
+                            closeProfileModal();
+                            // Actualizar el dashboard inmediatamente
+                            if (window.App && typeof window.App.loadDashboardPage === 'function') window.App.loadDashboardPage();
                             UI.showToast('Perfil actualizado correctamente', 'success');
+                            // Asegurar que el header muestre la versión actual (con cache-bust si es placeholder)
+                            try { if (typeof refreshHeaderFromStorage === 'function') refreshHeaderFromStorage(); } catch (err) {}
                         } else {
                             UI.showToast('Por favor ingresa un nombre', 'error');
                         }
                     };
 
-                    profileForm?.addEventListener('submit', saveProfile);
-                    // Si el botón de guardar está fuera del formulario (como en el modal), ligarlo también
-                    if (profileFormSubmit) profileFormSubmit.addEventListener('click', saveProfile);
+                    profileForm && profileForm.addEventListener('submit', saveProfile);
+                    profileFormSubmit && profileFormSubmit.addEventListener('click', saveProfile);
+
+                    // Inicializar header avatar si existe imagen guardada
+                    try {
+                        const savedImage = localStorage.getItem('psicoagenda_userImage');
+                        if (headerProfileImg) headerProfileImg.src = savedImage || placeholder;
+                    } catch (err) {
+                        if (headerProfileImg) headerProfileImg.src = placeholder;
+                    }
                 };
 
                 // Inicializar eventos del perfil
                 setupProfileEvents();
+
+                // Función para forzar recarga del avatar del header desde localStorage
+                const refreshHeaderFromStorage = () => {
+                    try {
+                        const headerImg = document.getElementById('header-profile-img');
+                        if (!headerImg) return;
+                        const saved = localStorage.getItem('psicoagenda_userImage');
+                        const placeholder = 'https://placehold.co/120x120/6366f1/FFFFFF?text=Foto';
+                        if (saved) {
+                            headerImg.src = saved;
+                        } else {
+                            // cache-bust placeholder to avoid stale cached image
+                            headerImg.src = placeholder + '?v=' + Date.now();
+                        }
+                        // update title too
+                        const n = localStorage.getItem('psicoagenda_userName') || '';
+                        const d = localStorage.getItem('psicoagenda_userDesc') || '';
+                        headerImg.title = n + (d ? (' - ' + d) : '');
+                    } catch (err) {
+                        // ignore
+                    }
+                };
+
+                // Escuchar cambios en localStorage desde otras pestañas y actualizar avatar automáticamente
+                window.addEventListener('storage', (e) => {
+                    if (e.key && e.key.startsWith('psicoagenda_user')) {
+                        refreshHeaderFromStorage();
+                    }
+                });
+
+                // Llamada inicial para asegurar avatar actualizado
+                refreshHeaderFromStorage();
+
+                // Holidays storage helpers and remote preload
+                const HOLIDAYS_KEY = 'psicoagenda_holidays';
+                const loadHolidays = () => {
+                    try { return JSON.parse(localStorage.getItem(HOLIDAYS_KEY) || '[]'); } catch (e) { return []; }
+                };
+                const saveHolidays = (arr) => { try { localStorage.setItem(HOLIDAYS_KEY, JSON.stringify(arr)); } catch (e) { console.error(e); } };
+
+                const isHolidayStored = (dateIso) => {
+                    const arr = loadHolidays();
+                    return arr.find(h => h.date === dateIso);
+                };
+
+                // Preload Chile public holidays for a year using Nager.Date API
+                const fetchChileHolidays = async (year) => {
+                    try {
+                        const resp = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/CL`);
+                        if (!resp.ok) throw new Error('Fetch failed: ' + resp.status);
+                        const data = await resp.json();
+                        // Map to {date,label}
+                        const mapped = data.map(d => ({ date: d.date, label: d.localName || d.name }));
+                        // Merge with existing, avoid duplicates
+                        const existing = loadHolidays();
+                        const merged = [...existing];
+                        mapped.forEach(m => {
+                            if (!merged.find(x => x.date === m.date)) merged.push(m);
+                        });
+                        saveHolidays(merged);
+                        UI.showToast(`Feriados de Chile cargados (${year}).`, 'success');
+                        try { loadCalendarioPage(); } catch (err) {}
+                        return true;
+                    } catch (err) {
+                        console.error('Error cargando feriados CHL', err);
+                        UI.showToast('Error cargando feriados desde internet.', 'error');
+                        return false;
+                    }
+                };
+
+                // (precarga de feriados deshabilitada - botón eliminado)
 
                 // Historial modal close handlers
                 el.historialActividadesClose?.addEventListener('click', () => el.historialActividadesModal.classList.add('hidden'));
@@ -3252,7 +3653,14 @@
                     const dayEl = e.target.closest('.cal-day:not(.other-month)');
                     if (dayEl) {
                         const date = new Date(dayEl.dataset.year, dayEl.dataset.month, dayEl.dataset.day);
-                        showCalendarioModal(date);
+                        // Mostrar eventos del día en el panel debajo del calendario
+                        const dayStart = new Date(date.getTime()); dayStart.setHours(0,0,0,0);
+                        const dayEnd = new Date(date.getTime()); dayEnd.setHours(23,59,59,999);
+                        const dayEvents = (calEventos || []).filter(ei => {
+                            const eDate = new Date(ei.fechaInicio);
+                            return eDate >= dayStart && eDate <= dayEnd;
+                        });
+                        UI.renderCalendarioEventosDia(date, dayEvents);
                     }
                 });
                 el.calEventosList.addEventListener('click', (e) => {
@@ -4185,9 +4593,14 @@
                         <label for="profile-name">Nombre</label>
                         <input type="text" id="profile-name" class="form-control" placeholder="Tu nombre" required>
                     </div>
+                    <div class="form-group">
+                        <label for="profile-desc">Descripción</label>
+                        <textarea id="profile-desc" class="form-control" rows="3" placeholder="Descripción breve (ej. Psicólogo escolar, horario, contacto)"></textarea>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
+                <button class="btn btn-danger-outline" id="profile-delete-photo" style="margin-right:auto;">Eliminar foto</button>
                 <button class="btn btn-secondary" id="profile-modal-cancel">Cancelar</button>
                 <button class="btn btn-primary" id="profile-form-submit">Guardar cambios</button>
             </div>
