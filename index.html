@@ -67,6 +67,114 @@
             --transition-slow: 500ms ease;
         }
 
+        /* Menú flotante (estilos principales) */
+        .fab-menu {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all var(--transition-base);
+        }
+
+        .fab-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .fab-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--white);
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            white-space: nowrap;
+        }
+
+        .fab-menu-item:hover {
+            transform: translateX(-4px);
+            background: var(--primary-light);
+        }
+
+        .fab-menu-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary-color);
+        }
+
+        .fab-menu-item span {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        /* Actividades list styles */
+        .actividad-item {
+            background: linear-gradient(135deg, #fff 0%, var(--primary-light) 100%);
+            border-left: 4px solid var(--accent-color);
+            border-radius: var(--border-radius-sm);
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .actividad-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .actividad-title {
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .actividad-meta {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Badge for urgent activities */
+        .badge-urgent {
+            background: var(--danger);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Urgent event styling: make the item border and accent red */
+        .actividad-item.urgent, .actividad-item .actividad-actions.urgent {
+            border-left: 4px solid var(--danger);
+            background: linear-gradient(135deg, #fff7f7 0%, #fff 100%);
+        }
+
+        .evento-item.urgent {
+            border-left: 4px solid var(--danger);
+            background: linear-gradient(135deg, #fff7f7 0%, #fff 100%);
+        }
+
+        .btn-terminar {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         @font-face {
             font-family: 'Inter';
             src: url('https://fonts.gstatic.com/s/inter/v13/UcC73FwrK3iLTeHuS_fvQtMwCp50KnMa1ZL7W0Q5nw.woff2') format('woff2');
@@ -85,7 +193,7 @@
             padding: 0;
         }
 
-        body {
+    body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             background-attachment: fixed;
@@ -94,8 +202,11 @@
             overscroll-behavior: none;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+                height: 100vh;
+                /* permitir el scroll cuando el contenido exceda la ventana
+                    (anteriormente overflow:hidden provocaba que elementos
+                    quedaran recortados en pantallas pequeñas) */
+                overflow: auto;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -178,7 +289,7 @@
             transform: scaleX(1);
         }
 
-        #app-header-top > button {
+        #settings-btn {
             background: var(--primary-light);
             border: none;
             border-radius: 12px;
@@ -189,22 +300,30 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+            animation: bounceIn 0.6s cubic-bezier(.68,-0.55,.27,1.55);
         }
         
-        #app-header-top > button:hover {
+        #settings-btn:hover {
             background: var(--primary-color);
-            transform: translateX(-2px);
+            transform: translateY(-2px) rotate(30deg);
+            box-shadow: var(--shadow-md);
         }
         
-        #app-header-top > button:hover svg {
+        #settings-btn:active {
+            transform: scale(0.95);
+        }
+        
+        #settings-btn:hover svg {
             stroke: var(--white);
+            transform: scale(1.1);
         }
         
-        #app-header-top > button svg {
-            width: 20px;
-            height: 20px;
+        #settings-btn svg {
+            width: 22px;
+            height: 22px;
             stroke: var(--primary-color);
-            transition: stroke var(--transition-base);
+            transition: all var(--transition-base);
         }
         
         /* Menú de configuración */
@@ -269,7 +388,8 @@
             flex-grow: 1;
             overflow-y: auto; /* Scroll solo en el contenido */
             padding: 1.5rem;
-            padding-bottom: 80px; /* Espacio para el nav inferior */
+            /* Dejar más espacio inferior para el bottom-nav y el FAB en pantallas pequeñas */
+            padding-bottom: 140px;
             padding-top: 0; /* Sin padding superior ya que el header tiene tabs */
         }
 
@@ -856,7 +976,10 @@
             backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
-            align-items: center;
+            /* Mostrar el modal más abajo para evitar que quede pegado al header
+               en pantallas grandes o cuando el header ocupa espacio visual */
+            align-items: flex-start;
+            padding-top: 4.5rem; /* espacio desde la parte superior */
             z-index: 2000;
             opacity: 0;
             transition: opacity var(--transition-base);
@@ -865,6 +988,9 @@
         
         .modal-backdrop:not(.hidden) {
             opacity: 1;
+            /* stronger blur/dim only on visible backdrop so modal stays sharp */
+            backdrop-filter: blur(8px) brightness(0.65);
+            background: rgba(8, 10, 20, 0.5);
         }
 
         .modal-dialog {
@@ -876,7 +1002,13 @@
             transform: scale(0.9) translateY(20px);
             transition: transform var(--transition-base);
             border: 1px solid var(--border-light);
+            /* Evitar que un modal muy alto salga de la pantalla en móviles */
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
         }
+
+        /* Use backdrop-filter on the modal backdrop to blur/dim the page
+           and keep the modal content sharp (do not blur the modal itself). */
         
         .modal-backdrop:not(.hidden) .modal-dialog {
              transform: scale(1) translateY(0);
@@ -978,6 +1110,35 @@
                 transform: translateY(20px) scale(0.9); 
             }
         }
+
+        @keyframes bounceIn {
+            0% { 
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 0.9;
+                transform: scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #installPWA:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 24px #6366f188;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        }
+
+        #installPWA:active {
+            transform: scale(0.95);
+        }
         
         /* Animaciones adicionales */
         @keyframes slideInRight {
@@ -1018,7 +1179,7 @@
         /* Botón flotante para agregar notas */
         .fab {
             position: fixed;
-            bottom: 100px;
+            bottom: 140px; /* elevar el FAB para que no cubra el footer */
             right: 1.5rem;
             width: 56px;
             height: 56px;
@@ -1029,7 +1190,8 @@
             font-size: 1.5rem;
             cursor: pointer;
             box-shadow: var(--shadow-lg);
-            z-index: 999;
+            /* Asegurar que el FAB flote por encima de la navegación inferior */
+            z-index: 1500;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1065,9 +1227,10 @@
         /* Menú flotante desplegable */
         .fab-menu {
             position: fixed;
-            bottom: 170px;
+            bottom: 210px; /* ajustar acorde al FAB */
             right: 1.5rem;
-            z-index: 998;
+            /* Debe estar justo por debajo del FAB pero por encima del footer */
+            z-index: 1499;
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -1143,23 +1306,89 @@
 <body>
 
     <!-- Botón de instalación PWA -->
-    <button id="installPWA" style="display:none;position:fixed;bottom:24px;right:24px;padding:1em 2em;background:var(--primary-gradient);color:white;border:none;border-radius:8px;box-shadow:0 2px 8px #6366f133;z-index:1000;font-size:1.1em;cursor:pointer;">Instalar App</button>
+    <button id="installPWA" style="display:none;position:fixed;bottom:24px;right:24px;padding:1em 2em;background:var(--primary-gradient);color:white;border:none;border-radius:16px;box-shadow:0 4px 16px #6366f155;z-index:1000;font-size:1.15em;font-weight:600;letter-spacing:0.03em;cursor:pointer;transition:all 0.3s ease;transform-origin:center;animation:bounceIn 0.6s cubic-bezier(.68,-0.55,.27,1.55);">
+        <svg style="display:inline-block;vertical-align:middle;margin-right:8px;width:24px;height:24px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Instalar App
+    </button>
 
     <!-- Encabezado de la App -->
     <header id="app-header">
         <div id="app-header-top">
             <h1 id="header-title">PsicoAgenda</h1>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <!-- Botón de configuración -->
-                <button id="settings-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <!-- Botón de perfil -->
+                <button id="profile-btn" style="background: var(--primary-light); border: none; border-radius: 12px; padding: 0.75rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transform-origin: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s ease">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
                 </button>
-                <!-- Botón de retorno, se mostrará dinámicamente -->
-                <button id="back-btn" class="hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <!-- Botón de configuración -->
+                <button id="settings-btn" style="background: var(--primary-light); border: none; border-radius: 12px; padding: 0.75rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transform-origin: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: all 0.3s ease">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
                 </button>
             </div>
         </div>
+
+            <!-- Modal para Agregar Actividad desde Inicio -->
+            <div id="add-actividad-modal" class="modal-backdrop hidden">
+                <div class="modal-dialog" style="max-width: 420px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Nueva Actividad</h3>
+                        <button id="add-actividad-modal-close" class="btn-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form-add-actividad-dashboard">
+                            <div class="form-group">
+                                <label for="actividad-titulo-dashboard">Título de la actividad</label>
+                                <input type="text" id="actividad-titulo-dashboard" class="form-control" placeholder="ej. Reunión con 1°A" required>
+                            </div>
+                                    <div class="form-group">
+                                        <label for="actividad-fecha-dashboard">Fecha</label>
+                                        <input type="date" id="actividad-fecha-dashboard" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="actividad-hora-dashboard">Hora</label>
+                                        <input type="time" id="actividad-hora-dashboard" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="actividad-descripcion-dashboard">Descripción</label>
+                                        <textarea id="actividad-descripcion-dashboard" class="form-control" rows="3" placeholder="Detalles de la actividad (opcional)"></textarea>
+                                    </div>
+                                    <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;">
+                                        <input type="checkbox" id="actividad-urgente-dashboard" />
+                                        <label for="actividad-urgente-dashboard" style="margin:0;">Marcar como urgente</label>
+                                    </div>
+                            <div class="modal-footer" style="padding: 0; border: none; margin-top: 1rem;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-actividad-modal').classList.add('hidden')">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Agregar Actividad</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Historial de Actividades -->
+            <div id="historial-actividades-modal" class="modal-backdrop hidden">
+                <div class="modal-dialog" style="max-width: 520px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Historial de Actividades</h3>
+                        <button id="historial-actividades-close" class="btn-close">&times;</button>
+                    </div>
+                    <div class="modal-body" id="historial-actividades-body">
+                        <p style="color:var(--text-light);">Actividades terminadas (hoy)</p>
+                        <ul id="historial-actividades-list" class="list-group"></ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="historial-actividades-ok">Cerrar</button>
+                    </div>
+                </div>
+            </div>
         <!-- Navegación superior con tabs -->
         <nav class="top-nav">
             <button data-page="dashboard" class="top-nav-btn active">
@@ -1200,6 +1429,13 @@
                 <div class="fab-menu-item" id="fab-add-curso">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                     <span>Agregar Curso</span>
+                </div>
+                <div id="fab-add-actividad" class="fab-menu-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 6v6l4 2"></path>
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    <span>Nueva Actividad</span>
                 </div>
                 <div class="fab-menu-item" id="fab-add-estudiante">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -1866,6 +2102,7 @@
                 fabAddCurso: document.getElementById('fab-add-curso'),
                 fabAddEstudiante: document.getElementById('fab-add-estudiante'),
                 fabAddNota: document.getElementById('fab-add-nota'),
+                fabAddActividad: document.getElementById('fab-add-actividad'),
 
                 // Cursos
                 cursosList: document.getElementById('cursos-list'),
@@ -1899,6 +2136,21 @@
                 calEventosTitle: document.getElementById('cal-eventos-title'),
                 calEventosList: document.getElementById('cal-eventos-list'),
                 
+                // Header
+                headerTitle: document.getElementById('header-title'),
+
+                // Profile
+                profileBtn: document.getElementById('profile-btn'),
+                profileModal: document.getElementById('profile-modal'),
+                profileModalClose: document.getElementById('profile-modal-close'),
+                profileModalCancel: document.getElementById('profile-modal-cancel'),
+                profileForm: document.getElementById('profile-form'),
+                profileFormSubmit: document.getElementById('profile-form-submit'),
+                profileName: document.getElementById('profile-name'),
+                profileImage: document.getElementById('profile-image'),
+                profileImageInput: document.getElementById('profile-image-input'),
+                profileImageContainer: document.getElementById('profile-image-container'),
+
                 // Settings Menu
                 settingsBtn: document.getElementById('settings-btn'),
                 settingsMenu: document.getElementById('settings-menu'),
@@ -1906,6 +2158,18 @@
                 settingsImport: document.getElementById('settings-import'),
                 settingsDelete: document.getElementById('settings-delete'),
                 
+                // Profile
+                profileBtn: document.getElementById('profile-btn'),
+                profileModal: document.getElementById('profile-modal'),
+                profileModalClose: document.getElementById('profile-modal-close'),
+                profileModalCancel: document.getElementById('profile-modal-cancel'),
+                profileForm: document.getElementById('profile-form'),
+                profileFormSubmit: document.getElementById('profile-form-submit'),
+                profileName: document.getElementById('profile-name'),
+                profileImage: document.getElementById('profile-image'),
+                profileImageInput: document.getElementById('profile-image-input'),
+                profileImageContainer: document.getElementById('profile-image-container'),
+
                 // Import/Export
                 importModal: document.getElementById('import-modal'),
                 importModalClose: document.getElementById('import-modal-close'),
@@ -1933,6 +2197,22 @@
                 notaTextoDashboard: document.getElementById('nota-texto-dashboard'),
                 notaTagsDashboard: document.getElementById('nota-tags-dashboard'),
                 notaArchivosDashboard: document.getElementById('nota-archivos-dashboard'),
+
+                // Modal Add Actividad Dashboard
+                addActividadModal: document.getElementById('add-actividad-modal'),
+                addActividadModalClose: document.getElementById('add-actividad-modal-close'),
+                formAddActividadDashboard: document.getElementById('form-add-actividad-dashboard'),
+                actividadTituloDashboard: document.getElementById('actividad-titulo-dashboard'),
+                actividadHoraDashboard: document.getElementById('actividad-hora-dashboard'),
+                actividadFechaDashboard: document.getElementById('actividad-fecha-dashboard'),
+                actividadDescripcionDashboard: document.getElementById('actividad-descripcion-dashboard'),
+                actividadUrgenteDashboard: document.getElementById('actividad-urgente-dashboard'),
+
+                // Historial Actividades
+                historialActividadesModal: document.getElementById('historial-actividades-modal'),
+                historialActividadesClose: document.getElementById('historial-actividades-close'),
+                historialActividadesOk: document.getElementById('historial-actividades-ok'),
+                historialActividadesList: document.getElementById('historial-actividades-list'),
 
                 // Modal
                 modalContainer: document.getElementById('modal-container'),
@@ -2025,19 +2305,14 @@
                 const currentPage = AppState.currentPage;
                 if (['dashboard', 'calendario', 'documentos'].includes(currentPage)) {
                     elements.headerTitle.innerText = "PsicoAgenda";
-                    elements.backBtn.classList.add('hidden');
                 } else if (currentPage === 'cursos') {
                     elements.headerTitle.innerText = "Mis Cursos";
-                    elements.backBtn.classList.remove('hidden');
                 } else if (currentPage === 'estudiantes') {
                     elements.headerTitle.innerText = AppState.currentCursoNombre || "Estudiantes";
-                    elements.backBtn.classList.remove('hidden');
                 } else if (currentPage === 'bitacora') {
                     elements.headerTitle.innerText = AppState.currentEstudianteNombre || "Bitácora";
-                    elements.backBtn.classList.remove('hidden');
                 } else if (['bitacora-list', 'evaluaciones'].includes(currentPage)) {
                     elements.headerTitle.innerText = currentPage === 'bitacora-list' ? "Bitácora" : "Evaluaciones";
-                    elements.backBtn.classList.add('hidden');
                 }
             };
 
@@ -2103,18 +2378,37 @@
                     elements.dashboardTitle.innerText = `¡Hola! ${getGreeting(now)}`;
                 }
 
-                if (todayEvents.length === 0) {
-                    elements.dashboardEventos.innerHTML = `
-                        <div style="text-align: center; padding: 2rem; color: var(--text-light);">
-                            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No hay eventos para hoy.</p>
-                            <p style="font-size: 0.9rem; opacity: 0.7;">¡Disfruta de un día tranquilo! 📅</p>
+                // Separar eventos y actividades
+                const actividades = todayEvents.filter(e => e.tipo === 'actividad');
+                const otros = todayEvents.filter(e => e.tipo !== 'actividad');
+
+                // Contenido principal: actividades + otros eventos
+                let content = '';
+
+                if (actividades.length > 0) {
+                    // Listar actividades directamente dentro del área de "Eventos de Hoy"
+                    content += actividades.map((act, idx) => `
+                        <div class="actividad-item${act.urgente ? ' urgent' : ''}" data-id="${act.id}" style="animation: slideInRight 0.35s ease ${idx * 0.05}s both;">
+                            <div class="actividad-info">
+                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                    <div class="actividad-title">${act.titulo}</div>
+                                    ${act.urgente ? `<span class="badge-urgent">Urgente</span>` : ''}
+                                </div>
+                                <div class="actividad-meta">🕐 ${new Date(act.fechaInicio).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ${act.descripcion ? `• ${act.descripcion}` : ''}</div>
+                            </div>
+                            <div class="actividad-actions${act.urgente ? ' urgent' : ''}">
+                                ${act.completed ? `<span style="color:var(--text-light); font-weight:600;">Completada</span>` : `<button class="btn-terminar" data-id="${act.id}">Terminar</button>`}
+                            </div>
                         </div>
-                    `;
-                } else {
-                    elements.dashboardEventos.innerHTML = todayEvents.map((evento, index) => `
-                        <div class="evento-item" style="
+                    `).join('');
+                }
+
+                if (otros.length > 0) {
+                    content += '<div style="margin-top:1rem;"><strong>Eventos de hoy</strong></div>';
+                    content += otros.map((evento, index) => `
+                        <div class="evento-item${evento.urgente ? ' urgent' : ''}" style="
                             background: linear-gradient(135deg, var(--primary-light) 0%, var(--white) 100%);
-                            border-left: 4px solid var(--primary-color);
+                            border-left: 4px solid ${evento.urgente ? 'var(--danger)' : 'var(--primary-color)'};
                             border-radius: var(--border-radius-sm);
                             padding: 1rem 1.25rem;
                             margin-bottom: 0.75rem;
@@ -2129,6 +2423,54 @@
                         </div>
                     `).join('');
                 }
+
+                if (!content) {
+                    content = `
+                        <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                            <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">No hay eventos para hoy.</p>
+                            <p style="font-size: 0.9rem; opacity: 0.7;">¡Disfruta de un día tranquilo! 📅</p>
+                        </div>
+                    `;
+                }
+
+                // add 'Ver próximos' button above the events list
+                const verProximosBtnHtml = `<div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;"><button id="ver-proximos-eventos" class="btn btn-secondary">Ver próximos</button></div>`;
+                elements.dashboardEventos.innerHTML = verProximosBtnHtml + content;
+                // Delegated listeners for historial button and terminar buttons
+                const historialBtn = document.getElementById('ver-historial-actividades');
+                if (historialBtn) {
+                    historialBtn.addEventListener('click', async () => {
+                        // cargar actividades completadas hoy
+                        const all = await DB.getAll('eventos');
+                        const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+                        const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
+                        const completedToday = all.filter(a => a.tipo === 'actividad' && a.completed && new Date(a.completedAt) >= todayStart && new Date(a.completedAt) <= todayEnd);
+                        const listEl = document.getElementById('historial-actividades-list');
+                        if (listEl) {
+                            listEl.innerHTML = completedToday.length === 0 ? '<li class="list-group-item">No hay actividades completadas hoy.</li>' : completedToday.map(a => `<li class="list-group-item">${new Date(a.completedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} — ${a.titulo}</li>`).join('');
+                        }
+                        const modal = document.getElementById('historial-actividades-modal');
+                        if (modal) modal.classList.remove('hidden');
+                    });
+                }
+
+                // handler for 'Ver próximos' button: show upcoming events (future fechaInicio)
+                const proximosBtn = document.getElementById('ver-proximos-eventos');
+                if (proximosBtn) {
+                    proximosBtn.addEventListener('click', async () => {
+                        const all = await DB.getAll('eventos');
+                        const now = new Date();
+                        const upcoming = all.filter(a => new Date(a.fechaInicio) > now).sort((a,b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+                        const listEl = document.getElementById('proximos-eventos-list');
+                        if (listEl) {
+                            listEl.innerHTML = upcoming.length === 0 ? '<li class="list-group-item">No hay próximos eventos.</li>' : upcoming.map(a => `<li class="list-group-item ${a.urgente ? 'urgent' : ''}">${new Date(a.fechaInicio).toLocaleString('es-ES', {year:'numeric',month:'short',day:'2-digit', hour:'2-digit',minute:'2-digit'})} — ${a.titulo}${a.descripcion?` — ${a.descripcion}`:''}${a.urgente? ' <strong style="color:var(--danger)">URGENTE</strong>':''}</li>`).join('');
+                        }
+                        const modal = document.getElementById('proximos-eventos-modal');
+                        if (modal) modal.classList.remove('hidden');
+                    });
+                }
+
+                // terminar buttons handled via delegated click elsewhere (setupEventListeners)
             };
             
             const getGreeting = (date) => {
@@ -2567,7 +2909,266 @@
             const setupEventListeners = () => {
                 // Evento PWA
                 window.addEventListener('beforeinstallprompt', setupPWAInstall);
-                el.installPWAButton.addEventListener('click', promptInstallPWA);
+                el.installPWAButton?.addEventListener('click', promptInstallPWA);
+
+                // Event delegation fallback: handle clicks for profile and FAB even if element refs are inconsistent
+                document.addEventListener('click', (e) => {
+                    // Ignore clicks inside modal dialogs to avoid accidental delegated handling
+                    if (e.target.closest('.modal-dialog')) return;
+                    // Perfil
+                    const pBtn = e.target.closest('#profile-btn');
+                    if (pBtn) {
+                        const profileModal = document.getElementById('profile-modal');
+                        const profileName = document.getElementById('profile-name');
+                        const profileImage = document.getElementById('profile-image');
+                        if (profileModal) {
+                            profileModal.classList.remove('hidden');
+                            if (profileName) profileName.value = localStorage.getItem('psicoagenda_userName') || '';
+                            if (profileImage) profileImage.src = localStorage.getItem('psicoagenda_userImage') || 'https://placehold.co/120x120/6366f1/FFFFFF?text=Foto';
+                        }
+                        // mark modal open state for background blur
+                        document.body.classList.add('has-active-modal');
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    // FAB toggle
+                    const fabBtn = e.target.closest('#fab-button');
+                    if (fabBtn) {
+                        const fabMenu = document.getElementById('fab-menu');
+                        const fabButtonEl = document.getElementById('fab-button');
+                        if (fabMenu) fabMenu.classList.toggle('active');
+                        if (fabButtonEl) fabButtonEl.classList.toggle('active');
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    // FAB menu actions (delegated)
+                    const addCursoBtn = e.target.closest('#fab-add-curso');
+                    if (addCursoBtn) {
+                        const fabMenu = document.getElementById('fab-menu');
+                        const fabButtonEl = document.getElementById('fab-button');
+                        if (fabMenu) fabMenu.classList.remove('active');
+                        if (fabButtonEl) fabButtonEl.classList.remove('active');
+                        const addCursoModal = document.getElementById('add-curso-modal');
+                        const cursoNombreDashboard = document.getElementById('curso-nombre-dashboard');
+                        if (addCursoModal) addCursoModal.classList.remove('hidden');
+                        if (cursoNombreDashboard) cursoNombreDashboard.focus();
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    const addEstudianteBtn = e.target.closest('#fab-add-estudiante');
+                    if (addEstudianteBtn) {
+                        const fabMenu = document.getElementById('fab-menu');
+                        const fabButtonEl = document.getElementById('fab-button');
+                        if (fabMenu) fabMenu.classList.remove('active');
+                        if (fabButtonEl) fabButtonEl.classList.remove('active');
+                        const addEstudianteModal = document.getElementById('add-estudiante-modal');
+                        const estudianteCursoDashboard = document.getElementById('estudiante-curso-dashboard');
+                        const estudianteNombreDashboard = document.getElementById('estudiante-nombre-dashboard');
+                        // populate cursos
+                        (async () => {
+                            const cursos = await DB.getAll('cursos');
+                            cursos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                            if (estudianteCursoDashboard) {
+                                estudianteCursoDashboard.innerHTML = '<option value="">Selecciona un curso</option>' +
+                                    cursos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+                            }
+                            if (addEstudianteModal) addEstudianteModal.classList.remove('hidden');
+                            if (estudianteNombreDashboard) estudianteNombreDashboard.focus();
+                        })();
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    const addNotaBtn = e.target.closest('#fab-add-nota');
+                    if (addNotaBtn) {
+                        const fabMenu = document.getElementById('fab-menu');
+                        const fabButtonEl = document.getElementById('fab-button');
+                        if (fabMenu) fabMenu.classList.remove('active');
+                        if (fabButtonEl) fabButtonEl.classList.remove('active');
+                        (async () => {
+                            const estudiantes = await DB.getAll('estudiantes');
+                            const cursos = await DB.getAll('cursos');
+                            const cursosMap = new Map(cursos.map(c => [c.id, c]));
+                            const notaEstudianteDashboard = document.getElementById('nota-estudiante-dashboard');
+                            if (notaEstudianteDashboard) {
+                                notaEstudianteDashboard.innerHTML = '<option value="">Selecciona un estudiante</option>' +
+                                    estudiantes.map(ei => {
+                                        const curso = cursosMap.get(ei.cursoId);
+                                        return `<option value="${ei.id}">${ei.nombre}${curso ? ` - ${curso.nombre}` : ''}</option>`;
+                                    }).join('');
+                            }
+                            const addNotaModal = document.getElementById('add-nota-modal');
+                            if (addNotaModal) addNotaModal.classList.remove('hidden');
+                            const notaTextoDashboard = document.getElementById('nota-texto-dashboard');
+                            if (notaTextoDashboard) notaTextoDashboard.focus();
+                        })();
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    const addActividadBtn = e.target.closest('#fab-add-actividad');
+                    if (addActividadBtn) {
+                        const fabMenu = document.getElementById('fab-menu');
+                        const fabButtonEl = document.getElementById('fab-button');
+                        if (fabMenu) fabMenu.classList.remove('active');
+                        if (fabButtonEl) fabButtonEl.classList.remove('active');
+                        const addActividadModal = document.getElementById('add-actividad-modal');
+                        const actividadTitulo = document.getElementById('actividad-titulo-dashboard');
+                        const actividadHora = document.getElementById('actividad-hora-dashboard');
+                        const actividadFecha = document.getElementById('actividad-fecha-dashboard');
+                        if (addActividadModal) {
+                            addActividadModal.classList.remove('hidden');
+                            document.body.classList.add('has-active-modal');
+                        }
+                        // set default date/time to now
+                        if (actividadFecha) actividadFecha.value = new Date().toISOString().substring(0,10);
+                        if (actividadHora) actividadHora.value = new Date().toTimeString().substring(0,5);
+                        if (actividadTitulo) actividadTitulo.focus();
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    // Cerrar modal de perfil (delegado)
+                    const profileClose = e.target.closest('#profile-modal-close');
+                    if (profileClose) {
+                        const profileModal = document.getElementById('profile-modal');
+                        if (profileModal) profileModal.classList.add('hidden');
+                        // update body modal class (MutationObserver also handles it but keep immediate cleanup)
+                        if (!document.querySelector('.modal-backdrop:not(.hidden)')) document.body.classList.remove('has-active-modal');
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    const profileCancel = e.target.closest('#profile-modal-cancel');
+                    if (profileCancel) {
+                        const profileModal = document.getElementById('profile-modal');
+                        if (profileModal) profileModal.classList.add('hidden');
+                        if (!document.querySelector('.modal-backdrop:not(.hidden)')) document.body.classList.remove('has-active-modal');
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    // Terminar actividad
+                    const terminarBtn = e.target.closest('.btn-terminar');
+                    if (terminarBtn) {
+                        (async () => {
+                            const id = parseInt(terminarBtn.dataset.id);
+                            try {
+                                const ev = await DB.get('eventos', id);
+                                if (ev) {
+                                    ev.completed = true;
+                                    ev.completedAt = new Date().toISOString();
+                                    await DB.put('eventos', ev);
+                                    UI.showToast('Actividad marcada como completada.', 'success');
+                                    loadDashboardPage();
+                                }
+                            } catch (err) {
+                                console.error('Error marcando actividad como completa', err);
+                                UI.showToast('Error al completar la actividad.', 'error');
+                            }
+                        })();
+                        e.stopPropagation();
+                        return;
+                    }
+                });
+
+                // Observe modal visibility changes and keep body.has-active-modal in sync
+                const updateBodyModalClass = () => {
+                    const anyOpen = !!document.querySelector('.modal-backdrop:not(.hidden)');
+                    if (anyOpen) document.body.classList.add('has-active-modal');
+                    else document.body.classList.remove('has-active-modal');
+                };
+
+                const modalNodes = Array.from(document.querySelectorAll('.modal-backdrop'));
+                if (modalNodes.length) {
+                    const mo = new MutationObserver((mutations) => {
+                        for (const m of mutations) {
+                            if (m.type === 'attributes' && m.attributeName === 'class') {
+                                updateBodyModalClass();
+                                break;
+                            }
+                        }
+                    });
+                    modalNodes.forEach(n => mo.observe(n, { attributes: true, attributeFilter: ['class'] }));
+                    // initial sync
+                    updateBodyModalClass();
+                }
+
+                // Configuración de perfil
+                const setupProfileEvents = () => {
+                    const { 
+                        profileBtn, profileModal, profileModalClose, profileModalCancel,
+                        profileForm, profileFormSubmit, profileName, profileImage, 
+                        profileImageInput, profileImageContainer 
+                    } = el;
+
+                    if (!profileBtn || !profileModal) return;
+
+                    // Click en botón de perfil
+                    profileBtn.addEventListener('click', () => {
+                        profileModal.classList.remove('hidden');
+                        if (profileName) {
+                            profileName.value = localStorage.getItem('psicoagenda_userName') || '';
+                        }
+                        if (profileImage) {
+                            profileImage.src = localStorage.getItem('psicoagenda_userImage') || 'https://placehold.co/120x120/6366f1/FFFFFF?text=Foto';
+                        }
+                    });
+
+                    // Cerrar modal
+                    profileModalClose?.addEventListener('click', () => profileModal.classList.add('hidden'));
+                    profileModalCancel?.addEventListener('click', () => profileModal.classList.add('hidden'));
+
+                    // Subir imagen
+                    if (profileImageContainer && profileImageInput) {
+                        profileImageContainer.addEventListener('click', () => profileImageInput.click());
+                        
+                        profileImageInput.addEventListener('change', (e) => {
+                            const file = e.target.files?.[0];
+                            if (file && profileImage) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    const result = e.target?.result;
+                                    if (result) {
+                                        profileImage.src = result.toString();
+                                        localStorage.setItem('psicoagenda_userImage', result.toString());
+                                    }
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        });
+                    }
+
+                    // Guardar cambios (reutilizable y ligado también al botón fuera del <form>)
+                    const saveProfile = (e) => {
+                        if (e && e.preventDefault) e.preventDefault();
+                        const name = profileName?.value?.trim();
+                        if (name) {
+                            localStorage.setItem('psicoagenda_userName', name);
+                            // La imagen ya se guarda al seleccionar el archivo (FileReader)
+                            if (profileModal) profileModal.classList.add('hidden');
+                            // Refrescar dashboard y mostrar toast mediante la API UI
+                            if (typeof loadDashboardPage === 'function') loadDashboardPage();
+                            UI.showToast('Perfil actualizado correctamente', 'success');
+                        } else {
+                            UI.showToast('Por favor ingresa un nombre', 'error');
+                        }
+                    };
+
+                    profileForm?.addEventListener('submit', saveProfile);
+                    // Si el botón de guardar está fuera del formulario (como en el modal), ligarlo también
+                    if (profileFormSubmit) profileFormSubmit.addEventListener('click', saveProfile);
+                };
+
+                // Inicializar eventos del perfil
+                setupProfileEvents();
+
+                // Historial modal close handlers
+                el.historialActividadesClose?.addEventListener('click', () => el.historialActividadesModal.classList.add('hidden'));
+                el.historialActividadesOk?.addEventListener('click', () => el.historialActividadesModal.classList.add('hidden'));
                 
                 // Navegación superior (tabs)
                 el.topNavButtons.forEach(btn => {
@@ -2579,7 +3180,7 @@
                         UI.showPage(pageId, true);
                     });
                 });
-                
+
                 // Navegación inferior
                 el.navButtons.forEach(btn => {
                     btn.addEventListener('click', () => {
@@ -2590,8 +3191,6 @@
                         UI.showPage(pageId);
                     });
                 });
-                
-                el.backBtn.addEventListener('click', UI.navigateBack);
 
                 // --- Cursos ---
                 el.formAddCurso.addEventListener('submit', handleAddCurso);
@@ -2818,7 +3417,12 @@
                         UI.showToast('Curso agregado.', 'success');
                         el.formAddCursoDashboard.reset();
                         el.addCursoModal.classList.add('hidden');
-                        loadDashboardPage(); // Recargar para mostrar el nuevo curso si es necesario
+                        
+                        // Actualizar solo la lista de cursos en el dashboard
+                        const cursos = await DB.getAll('cursos');
+                        if (AppState.currentPage === 'dashboard') {
+                            UI.renderDashboardCursos(cursos);
+                        }
                     } catch (error) {
                         console.error('Error al agregar curso:', error);
                         UI.showToast('Error al agregar curso.', 'error');
@@ -2853,7 +3457,13 @@
                         UI.showToast('Estudiante agregado.', 'success');
                         el.formAddEstudianteDashboard.reset();
                         el.addEstudianteModal.classList.add('hidden');
-                        loadDashboardPage(); // Recargar dashboard
+                        
+                        // Actualizar solo la lista de estudiantes en el dashboard
+                        if (AppState.currentPage === 'dashboard') {
+                            const estudiantes = await DB.getAll('estudiantes');
+                            const cursos = await DB.getAll('cursos');
+                            UI.renderDashboardEstudiantes(estudiantes, cursos);
+                        }
                     } catch (error) {
                         console.error('Error al agregar estudiante:', error);
                         UI.showToast('Error al agregar estudiante.', 'error');
@@ -2931,6 +3541,75 @@
                     }
                 });
 
+                // Modal Agregar Actividad
+                el.addActividadModalClose.addEventListener('click', () => {
+                    el.addActividadModal.classList.add('hidden');
+                    el.formAddActividadDashboard.reset();
+                });
+
+                el.addActividadModal.addEventListener('click', (e) => {
+                    if (e.target === el.addActividadModal) {
+                        el.addActividadModal.classList.add('hidden');
+                        el.formAddActividadDashboard.reset();
+                    }
+                });
+
+                // Close handlers for proximos-eventos modal
+                const proximosClose = document.getElementById('proximos-eventos-close');
+                const proximosOk = document.getElementById('proximos-eventos-ok');
+                const proximosModal = document.getElementById('proximos-eventos-modal');
+                if (proximosClose) proximosClose.addEventListener('click', () => { if (proximosModal) proximosModal.classList.add('hidden'); });
+                if (proximosOk) proximosOk.addEventListener('click', () => { if (proximosModal) proximosModal.classList.add('hidden'); });
+                if (proximosModal) {
+                    proximosModal.addEventListener('click', (e) => { if (e.target === proximosModal) proximosModal.classList.add('hidden'); });
+                }
+
+                el.formAddActividadDashboard.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const titulo = el.actividadTituloDashboard.value.trim();
+                    const hora = el.actividadHoraDashboard.value;
+                    const descripcion = el.actividadDescripcionDashboard?.value?.trim() || '';
+                    const urgente = !!(el.actividadUrgenteDashboard && el.actividadUrgenteDashboard.checked);
+                    if (!titulo || !hora) {
+                        UI.showToast('Por favor completa todos los campos.', 'error');
+                        return;
+                    }
+
+                    // determine date: use selected date if provided, otherwise today
+                    let fechaInicio;
+                    const selectedDate = el.actividadFechaDashboard?.value;
+                    if (selectedDate) {
+                        // expected format YYYY-MM-DD
+                        fechaInicio = new Date(`${selectedDate}T${hora}`);
+                    } else {
+                        const today = new Date();
+                        const isoDate = today.toISOString().substring(0,10);
+                        fechaInicio = new Date(`${isoDate}T${hora}`);
+                    }
+
+                    try {
+                        await DB.add('eventos', {
+                            titulo,
+                            descripcion,
+                            urgente,
+                            fechaInicio: fechaInicio.toISOString(),
+                            tipo: 'actividad',
+                            completed: false
+                        });
+
+                        UI.showToast('Actividad agregada.', 'success');
+                        el.formAddActividadDashboard.reset();
+                        el.addActividadModal.classList.add('hidden');
+                        // update body class immediately (observer will sync too)
+                        if (!document.querySelector('.modal-backdrop:not(.hidden)')) document.body.classList.remove('has-active-modal');
+                        loadDashboardPage();
+
+                    } catch (error) {
+                        console.error('Error al guardar actividad:', error);
+                        UI.showToast('Error al agregar actividad.', 'error');
+                    }
+                });
+
                 // --- Modal ---
                 el.modalCloseBtn.addEventListener('click', UI.hideModal);
                 el.modalContainer.addEventListener('click', (e) => {
@@ -2955,6 +3634,8 @@
                 todayEvents.sort((a,b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
 
                 UI.renderDashboard(todayEvents);
+                // Asegurar que la vista del dashboard esté activa y el FAB visible
+                UI.showPage('dashboard', true);
             };
             
             const loadCursosPage = async () => {
@@ -3477,5 +4158,59 @@
 
     })();
     </script>
+
+    <!-- Modal de Perfil -->
+    <div id="profile-modal" class="modal-backdrop hidden">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Mi Perfil</h3>
+                <button id="profile-modal-close" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="profile-form">
+                    <div class="form-group" style="text-align: center; margin-bottom: 2rem;">
+                        <div id="profile-image-container" style="width: 120px; height: 120px; margin: 0 auto; position: relative; cursor: pointer;">
+                            <img id="profile-image" src="https://placehold.co/120x120/6366f1/FFFFFF?text=Foto" alt="Foto de perfil"
+                                style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-light);">
+                            <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-gradient); border-radius: 50%; padding: 0.5rem; box-shadow: var(--shadow-md);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-name">Nombre</label>
+                        <input type="text" id="profile-name" class="form-control" placeholder="Tu nombre" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="profile-modal-cancel">Cancelar</button>
+                <button class="btn btn-primary" id="profile-form-submit">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Próximos Eventos -->
+<div id="proximos-eventos-modal" class="modal-backdrop hidden">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 class="modal-title">Próximos Eventos</h3>
+            <button id="proximos-eventos-close" class="btn-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <ul id="proximos-eventos-list" class="list-group" style="max-height:50vh;overflow:auto;padding-left:0;list-style:none;margin:0;">
+                <!-- populated dynamically -->
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button id="proximos-eventos-ok" class="btn btn-primary">Cerrar</button>
+        </div>
+    </div>
+</div>
+    </div>
 </body>
 </html>
